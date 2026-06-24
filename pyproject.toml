@@ -27,18 +27,27 @@ dependencies = [
   "scanpy"
 ]
 
-optional-dependencies.extra = [
+[project.optional-dependencies]
+liana = [
   "liana", # required for ligand-receptor networks
+]
+spatial = [
   "squidpy", # required for spatial summaries
+]
+patpy = [
   "patpy @ git+https://github.com/lueckenlab/patpy.git@main", # required for patient representation
 ]
-
-optional-dependencies.dev = [
+extra = [
+  "liana", # compatibility bundle for all optional runtime integrations
+  "squidpy",
+  "patpy @ git+https://github.com/lueckenlab/patpy.git@main",
+]
+dev = [
   "ruff",
   "pre-commit",
   "twine>=4.0.2",
 ]
-optional-dependencies.doc = [
+doc = [
   "ipykernel",
   "ipython",
   "mkdocs>=1.6,<2",
@@ -48,15 +57,16 @@ optional-dependencies.doc = [
   "pymdown-extensions",
   "pandas",
 ]
-optional-dependencies.test = [
+test = [
   "coverage>=7.10",
   "pytest",
   'pytest-cov',
 ]
+[project.urls]
 # https://docs.pypi.org/project_metadata/#project-urls
-urls.Documentation = "https://saezlab.github.io/mina/"
-urls.Homepage = "https://github.com/saezlab/MINA"
-urls.Source = "https://github.com/saezlab/MINA"
+Documentation = "https://saezlab.github.io/mina/"
+Homepage = "https://github.com/saezlab/MINA"
+Source = "https://github.com/saezlab/MINA"
 
 [tool.hatch.metadata]
 allow-direct-references = true

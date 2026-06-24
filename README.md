@@ -40,6 +40,26 @@ pip install MINA
 pip install git+https://github.com/saezlab/MINA.git@main
 ```
 
+Optional integrations are installed via extras:
+
+- `spatial` installs `squidpy` for spatial neighborhood features.
+- `patpy` installs the patient-representation integration.
+- `liana` installs ligand-receptor analysis support.
+
+For example:
+
+```bash
+pip install "mina[spatial]"
+pip install "mina[spatial,patpy]"
+```
+
+In a local development checkout managed with `uv`, sync the corresponding extras instead:
+
+```bash
+uv sync --extra spatial
+uv sync --extra spatial --extra patpy
+```
+
 ## Citation
 
 > Ricardo Omar Ramirez Flores, Jan David Lanzer, Daniel Dimitrov, Britta Velten, Julio Saez-Rodriguez (2023) Multicellular factor analysis of single-cell data for a tissue-centric understanding of disease eLife 12:e93161
