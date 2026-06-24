@@ -33,6 +33,7 @@ liana = [
 ]
 spatial = [
   "squidpy", # required for spatial summaries
+  "plotnine>=0.10.0", # required for MuVIcell-derived plotting helpers
 ]
 patpy = [
   "patpy @ git+https://github.com/lueckenlab/patpy.git@main", # required for patient representation

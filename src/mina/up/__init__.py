@@ -11,8 +11,14 @@ from .filt import (
 )
 from .pp import (
     extract_metadata_from_obs,
+    filter_views_qc,
+    find_highly_variable_genes,
+    get_view_info,
+    preprocess_views,
     split_anndata_by_celltype,
+    subset_to_hvg,
     norm_log,
+    validate_views,
 )
 from .utils import (
     save_raw_counts,
@@ -34,8 +40,14 @@ __all__ = [
     "get_hvgs",
     "filter_hvgs",
     "extract_metadata_from_obs",
+    "get_view_info",
+    "validate_views",
     "split_anndata_by_celltype",
     "norm_log",
+    "filter_views_qc",
+    "find_highly_variable_genes",
+    "subset_to_hvg",
+    "preprocess_views",
     "save_raw_counts",
     "append_view_to_var",
     "merge_adata_views",

@@ -24,9 +24,21 @@
 
 ::: mina.up.extract_metadata_from_obs
 
+::: mina.up.get_view_info
+
+::: mina.up.validate_views
+
 ::: mina.up.split_anndata_by_celltype
 
 ::: mina.up.norm_log
+
+::: mina.up.filter_views_qc
+
+::: mina.up.find_highly_variable_genes
+
+::: mina.up.subset_to_hvg
+
+::: mina.up.preprocess_views
 
 ## Utils
 

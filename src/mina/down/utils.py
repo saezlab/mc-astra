@@ -110,10 +110,11 @@ def model_to_anndata(
     if not isinstance(W_raw, dict) or len(W_raw) == 0:
         raise ValueError("model.get_weights() returned no views.")
 
-    # Transpose each to factors × features, then concat by keys -> MultiIndex (view_name, feature)
+    # Transpose each to factors × features, then concat by keys so columns retain
+    # their originating view names.
     W = {view: df.T for view, df in W_raw.items()}
-    gene_weights = pd.concat(W.values(), axis =1)  # rows = factors, cols = features, stacked by view on the row index
-    gene_weights.index = [_clean_factor(c) for c in gene_weights.index]  # rows = factors, cols = features, stacked by view on the row index
+    gene_weights = pd.concat(W, axis=1)
+    gene_weights.index = [_clean_factor(c) for c in gene_weights.index]
     # Ensure rows of gene_weights (factors) match Z.columns order
     #gene_weights = gene_weights.T
 
@@ -129,9 +130,13 @@ def model_to_anndata(
 
     # ---------- 7) Store gene loadings in .varm (as array) and keep column names in .uns ----------
     model_adata.varm["gene_loadings"] = gene_weights.to_numpy()
-    # If columns are a MultiIndex like (view, feature), keep only the feature level
+    # Preserve full "view:feature" labels so split_by_view and downstream helpers
+    # can reconstruct view-specific loadings reliably.
     if isinstance(gene_weights.columns, pd.MultiIndex):
-        gl_cols = gene_weights.columns.get_level_values(1).astype(str).tolist()
+        gl_cols = [
+            str(feature) if str(feature).startswith(f"{view}:") else f"{view}:{feature}"
+            for view, feature in gene_weights.columns.to_list()
+        ]
     else:
         gl_cols = [str(c) for c in gene_weights.columns]
     model_adata.uns["gene_loadings_columns"] = gl_cols

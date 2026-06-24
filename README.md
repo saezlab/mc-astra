@@ -42,7 +42,7 @@ pip install git+https://github.com/saezlab/MINA.git@main
 
 Optional integrations are installed via extras:
 
-- `spatial` installs `squidpy` for spatial neighborhood features.
+- `spatial` installs `squidpy` for spatial neighborhood features and `plotnine` for MuVIcell-derived plotting helpers.
 - `patpy` installs the patient-representation integration.
 - `liana` installs ligand-receptor analysis support.
 

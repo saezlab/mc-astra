@@ -2210,6 +2210,7 @@ patpy = [
     { name = "patpy" },
 ]
 spatial = [
+    { name = "plotnine" },
     { name = "squidpy" },
 ]
 test = [
@@ -2239,6 +2240,7 @@ requires-dist = [
     { name = "pandas", marker = "extra == 'doc'" },
     { name = "patpy", marker = "extra == 'extra'", git = "https://github.com/lueckenlab/patpy.git?rev=main" },
     { name = "patpy", marker = "extra == 'patpy'", git = "https://github.com/lueckenlab/patpy.git?rev=main" },
+    { name = "plotnine", marker = "extra == 'spatial'", specifier = ">=0.10.0" },
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pymdown-extensions", marker = "extra == 'doc'" },
     { name = "pytest", marker = "extra == 'test'" },

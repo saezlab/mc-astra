@@ -129,6 +129,144 @@ def test_norm_log_skips_scale_when_center_false(monkeypatch, capsys):
     assert "Normalization and log-transformation complete" in capsys.readouterr().out
 
 
+def test_norm_log_supports_zscore_mode(capsys):
+    views = {"A": _make_adata([[1, 2], [3, 4], [5, 6]], ["c1", "c2", "c3"], ["g1", "g2"])}
+
+    pp.norm_log(views, method="zscore")
+
+    np.testing.assert_allclose(views["A"].X.mean(axis=0), np.array([0.0, 0.0]), atol=1e-12)
+    np.testing.assert_allclose(views["A"].X.std(axis=0), np.array([1.0, 1.0]), atol=1e-12)
+    assert "z-score normalization complete" in capsys.readouterr().out
+
+
+def test_get_view_info_and_validate_views_report_structure():
+    views = {
+        "A": _make_adata([[1, 2], [3, 4]], ["s1", "s2"], ["g1", "g2"]),
+        "B": _make_adata([[5], [6]], ["s1", "s2"], ["g3"]),
+    }
+
+    info = pp.get_view_info(views)
+    validation = pp.validate_views(views)
+
+    assert list(info.columns) == ["view_name", "n_obs", "n_vars", "var_names"]
+    assert set(info["view_name"]) == {"A", "B"}
+    assert validation == {
+        "has_multiple_views": True,
+        "consistent_observations": True,
+        "views_have_variables": True,
+        "consistent_obs_names": True,
+    }
+
+
+def test_validate_views_detects_mismatched_obs_names_and_zero_var_view():
+    views = {
+        "A": _make_adata([[1.0], [2.0]], ["s1", "s2"], ["g1"]),
+        "B": _make_adata(np.empty((1, 0)), ["other"], []),
+    }
+
+    validation = pp.validate_views(views)
+
+    assert validation["consistent_observations"] is False
+    assert validation["views_have_variables"] is False
+    assert validation["consistent_obs_names"] is False
+
+
+def test_filter_views_qc_applies_defaults_and_view_specific_overrides(monkeypatch):
+    views = {
+        "A": _make_adata([[1, 0], [0, 1]], ["c1", "c2"], ["g1", "g2"]),
+        "B": _make_adata([[1, 1], [1, 0]], ["d1", "d2"], ["g1", "g2"]),
+    }
+    calls = []
+
+    def fake_filter_genes(adata, min_cells):
+        calls.append(("genes", min_cells, adata.n_obs))
+
+    def fake_filter_cells(adata, min_genes=None, max_genes=None):
+        calls.append(("cells", min_genes, max_genes, adata.n_obs))
+
+    monkeypatch.setattr(pp.sc.pp, "filter_genes", fake_filter_genes)
+    monkeypatch.setattr(pp.sc.pp, "filter_cells", fake_filter_cells)
+
+    pp.filter_views_qc(
+        views,
+        min_cells_per_gene=3,
+        min_genes_per_cell=200,
+        max_genes_per_cell=500,
+        view_specific_filters={"B": {"min_cells_per_gene": 5, "max_genes_per_cell": 300}},
+    )
+
+    assert ("genes", 3, 2) in calls
+    assert ("genes", 5, 2) in calls
+    assert ("cells", 200, None, 2) in calls
+    assert ("cells", None, 500, 2) in calls
+    assert ("cells", None, 300, 2) in calls
+
+
+def test_find_highly_variable_genes_marks_features_and_supports_manual_fallback(monkeypatch):
+    views = {
+        "A": _make_adata([[1, 2, 5], [1, 2, 0], [1, 2, 10]], ["c1", "c2", "c3"], ["g1", "g2", "g3"]),
+        "B": _make_adata([[0, 1], [0, 3]], ["d1", "d2"], ["h1", "h2"]),
+    }
+
+    def fake_hvg(adata, **kwargs):
+        if adata.n_vars == 2:
+            raise ValueError("too small")
+        adata.var["highly_variable"] = [False, True, True]
+        adata.var["means"] = [1.0, 2.0, 3.0]
+        adata.var["dispersions"] = [0.1, 0.2, 0.3]
+        adata.var["dispersions_norm"] = [0.1, 0.2, 0.3]
+
+    monkeypatch.setattr(pp.sc.pp, "highly_variable_genes", fake_hvg)
+
+    with pytest.warns(UserWarning, match="Could not find highly variable genes"):
+        pp.find_highly_variable_genes(views, n_top_genes=1, view_specific_n_genes={"A": 2})
+
+    assert views["A"].var["highly_variable"].tolist() == [False, True, True]
+    assert views["B"].var["highly_variable"].sum() == 1
+
+
+def test_subset_to_hvg_subsets_and_warns_when_missing(capsys):
+    views = {
+        "A": _make_adata([[1, 2, 3]], ["c1"], ["g1", "g2", "g3"]),
+        "B": _make_adata([[1, 2]], ["d1"], ["h1", "h2"]),
+    }
+    views["A"].var["highly_variable"] = [True, False, True]
+
+    with pytest.warns(UserWarning, match="Run find_highly_variable_genes"):
+        pp.subset_to_hvg(views)
+
+    assert list(views["A"].var_names) == ["g1", "g3"]
+    assert list(views["B"].var_names) == ["h1", "h2"]
+
+
+def test_preprocess_views_runs_selected_pipeline_steps(monkeypatch):
+    views = {"A": _make_adata([[1, 2], [3, 4]], ["c1", "c2"], ["g1", "g2"])}
+    calls = []
+
+    monkeypatch.setattr(pp, "filter_views_qc", lambda *args, **kwargs: calls.append(("filter", kwargs)))
+    monkeypatch.setattr(pp, "norm_log", lambda *args, **kwargs: calls.append(("norm", kwargs)))
+    monkeypatch.setattr(pp, "find_highly_variable_genes", lambda *args, **kwargs: calls.append(("hvg", kwargs)))
+    monkeypatch.setattr(pp, "subset_to_hvg", lambda *args, **kwargs: calls.append(("subset", {})))
+
+    pp.preprocess_views(
+        views,
+        filter_views=True,
+        normalize=True,
+        find_hvg=True,
+        subset_hvg=True,
+        norm_method="zscore",
+        min_cells_per_gene=7,
+        n_top_genes=12,
+    )
+
+    assert calls == [
+        ("filter", {"min_cells_per_gene": 7}),
+        ("norm", {"method": "zscore"}),
+        ("hvg", {"n_top_genes": 12}),
+        ("subset", {}),
+    ]
+
+
 def test_save_raw_counts_creates_independent_layer(capsys):
     adata = _make_adata([[1, 2], [3, 4]], ["c1", "c2"], ["g1", "g2"])
     views = {"A": adata}

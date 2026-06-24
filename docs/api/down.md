@@ -26,6 +26,30 @@
 
 ::: mina.down.model_to_anndata
 
+::: mina.down.factor_scores_info
+
+::: mina.down.reconstruction_info
+
+::: mina.down.featureclass_variance_info
+
+::: mina.down.selected_features_info
+
+::: mina.down.kruskal_info
+
+::: mina.down.kendall_info
+
+::: mina.down.confidence_ellipses_info
+
+::: mina.down.top_features_by_view_info
+
+::: mina.down.top_features_by_class_info
+
+::: mina.down.build_selected_anndata
+
+::: mina.down.variance_by_view_info
+
+::: mina.down.variable_loadings_info
+
 ::: mina.down.split_by_view
 
 ::: mina.down.restore_anns_factor
