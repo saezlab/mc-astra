@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning][].
 
 ## [Unreleased]
 
+### Fixed
+
+- `mina.down.kendall_info()` now drops missing `(factor, ordinal)` pairs before running Kendall tau, preventing single missing factor values from turning `tau` and `pvalue` into `NaN` for the whole test.
+
+### Added
+
+- MuVIcell-derived downstream helpers for factor score tables, reconstruction summaries, variance-by-view summaries, feature-class variance summaries, variable loading tables, selected-feature extraction, Kruskal and Kendall tests, confidence ellipse coordinates, and top-feature ranking by view or feature class.
+- MuVIcell-derived plotting helpers for reconstruction summaries, variance-by-view tiles, feature-class variance tiles, top-loading heatmaps, selected-feature heatmaps, factor violins, and confidence ellipses.
+
+
 ## [0.1.0] - 2026-06-02
 
 ### Added

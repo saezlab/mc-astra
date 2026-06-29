@@ -434,13 +434,17 @@ def kendall_info(
         raise KeyError(f"Unknown ordinal column: {ordinal_col}")
 
     factor_cols = list(factors) if factors is not None else [col for col in scores_df.columns if str(col).startswith("Factor")]
-    ordinal_codes = pd.Categorical(scores_df[ordinal_col]).codes
     rows = []
 
     for factor in factor_cols:
         if factor not in scores_df.columns:
             raise KeyError(f"Unknown factor column: {factor}")
-        tau, pvalue = kendalltau(scores_df[factor], ordinal_codes)
+        paired = scores_df.loc[:, [factor, ordinal_col]].dropna()
+        if paired.empty:
+            tau, pvalue = np.nan, np.nan
+        else:
+            ordinal_codes = pd.Categorical(paired[ordinal_col]).codes
+            tau, pvalue = kendalltau(paired[factor], ordinal_codes)
         if bonferroni and pd.notna(pvalue):
             pvalue = min(pvalue * len(factor_cols), 1.0)
         rows.append({"factor": factor, "tau": tau, "pvalue": pvalue})
