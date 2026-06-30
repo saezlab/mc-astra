@@ -9,6 +9,10 @@ All notable changes to this project are tracked in the repository changelog.
 - MuVIcell-derived downstream and plotting helpers (factor scores, reconstruction, variance summaries, loadings, statistical tests, confidence ellipses, top-feature ranking).
 - Documentation examples: reproducing the MuVIcell tutorial with MINA, a full MIBI colorectal-cancer spatial-proteomics case study, and a best-practices guide for spatial proteomics.
 
+### Changed
+
+- `mina.down.kruskal_info()` and `mina.down.kendall_info()` report multiple-testing correction in a dedicated column (`pvalue_bonferroni` by default) and accept a `correction` parameter (`"bonferroni"`, `"fdr_bh"`, or `None`), keeping the raw `pvalue` column.
+
 ### Fixed
 
 - `mina.down.kendall_info()` now drops missing `(factor, ordinal)` pairs before running Kendall tau.

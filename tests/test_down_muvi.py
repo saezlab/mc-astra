@@ -243,10 +243,29 @@ def test_kruskal_and_kendall_info_return_expected_columns_and_validate_inputs():
     kruskal_df = kruskal_info(scores_df, "group")
     kendall_df = kendall_info(scores_df, "stage")
 
-    assert list(kruskal_df.columns) == ["factor", "pvalue"]
-    assert list(kendall_df.columns) == ["factor", "tau", "pvalue"]
+    # Bonferroni correction across factors is applied by default and labelled
+    # in its own column (never as a plain "pvalue").
+    assert list(kruskal_df.columns) == ["factor", "pvalue", "pvalue_bonferroni"]
+    assert list(kendall_df.columns) == ["factor", "tau", "pvalue", "pvalue_bonferroni"]
     assert set(kruskal_df["factor"]) == {"Factor1", "Factor2"}
     assert set(kendall_df["factor"]) == {"Factor1", "Factor2"}
+    # Adjusted values are never smaller than the raw p-values.
+    valid = kruskal_df["pvalue"].notna()
+    assert (kruskal_df.loc[valid, "pvalue_bonferroni"] >= kruskal_df.loc[valid, "pvalue"] - 1e-12).all()
+
+    # FDR is available as an option, labelled "FDR".
+    kruskal_fdr = kruskal_info(scores_df, "group", correction="fdr_bh")
+    assert list(kruskal_fdr.columns) == ["factor", "pvalue", "FDR"]
+    assert list(kendall_info(scores_df, "stage", correction="fdr").columns) == ["factor", "tau", "pvalue", "FDR"]
+
+    # Uncorrected results can be requested explicitly.
+    kruskal_raw = kruskal_info(scores_df, "group", correction=None)
+    kendall_raw = kendall_info(scores_df, "stage", correction=None)
+    assert list(kruskal_raw.columns) == ["factor", "pvalue"]
+    assert list(kendall_raw.columns) == ["factor", "tau", "pvalue"]
+
+    with pytest.raises(ValueError, match="correction must be one of"):
+        kruskal_info(scores_df, "group", correction="holm")
 
     with pytest.raises(KeyError, match="Unknown group column"):
         kruskal_info(scores_df, "missing")

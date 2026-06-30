@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning][].
 
 ## [Unreleased]
 
+### Changed
+
+- `mina.down.kruskal_info()` and `mina.down.kendall_info()` now report multiple-testing correction in a dedicated, clearly named column instead of overwriting the raw `pvalue`. They expose a `correction` parameter (`"bonferroni"` by default, written to `pvalue_bonferroni`; `"fdr_bh"` written to `FDR`; or `None` for uncorrected p-values), and always keep the raw `pvalue` column.
+
 ### Fixed
 
 - `mina.down.kendall_info()` now drops missing `(factor, ordinal)` pairs before running Kendall tau, preventing single missing factor values from turning `tau` and `pvalue` into `NaN` for the whole test.

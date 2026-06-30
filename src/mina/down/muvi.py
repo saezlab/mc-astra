@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 from scipy.stats import kendalltau, kruskal
+from statsmodels.stats.multitest import multipletests
 
 from .utils import split_by_view
 
@@ -15,6 +16,36 @@ def _nan_pearsonr(x: np.ndarray, y: np.ndarray) -> float:
     if mask.sum() < 3:
         return np.nan
     return np.corrcoef(x[mask], y[mask])[0, 1]
+
+
+# Supported multiple-testing corrections across factors and the column name
+# used for the adjusted values, so the output never mislabels a corrected
+# value as a raw p-value.
+_CORRECTION_COLUMNS = {"bonferroni": "pvalue_bonferroni", "fdr_bh": "FDR"}
+
+
+def _adjust_pvalues(pvalues: pd.Series | np.ndarray, method: str) -> np.ndarray:
+    """Adjust p-values across factors with ``method``, ignoring NaN entries."""
+    p = np.asarray(pvalues, dtype=float)
+    adjusted = np.full(p.shape, np.nan)
+    mask = np.isfinite(p)
+    if mask.any():
+        adjusted[mask] = multipletests(p[mask], method=method)[1]
+    return adjusted
+
+
+def _resolve_correction(correction: str | None) -> str | None:
+    """Validate and normalise the ``correction`` argument."""
+    if correction is None:
+        return None
+    key = str(correction).lower()
+    aliases = {"fdr": "fdr_bh", "bh": "fdr_bh", "none": None}
+    key = aliases.get(key, key)
+    if key is not None and key not in _CORRECTION_COLUMNS:
+        raise ValueError(
+            f"correction must be one of {sorted(_CORRECTION_COLUMNS)}, 'fdr', or None; got {correction!r}"
+        )
+    return key
 
 
 def _loadings_by_view(model_adata: AnnData) -> dict[str, pd.DataFrame]:
@@ -358,7 +389,7 @@ def kruskal_info(
     group_col: str,
     factors: Sequence[str] | None = None,
     *,
-    bonferroni: bool = True,
+    correction: str | None = "bonferroni",
 ) -> pd.DataFrame:
     """
     Run Kruskal-Wallis tests for factor scores across groups.
@@ -372,16 +403,23 @@ def kruskal_info(
     factors
         Optional subset of factor columns to test. Defaults to all columns that
         start with ``"Factor"``.
-    bonferroni
-        Whether to apply a Bonferroni correction across tested factors.
+    correction
+        Multiple-testing correction applied across the tested factors. One of
+        ``"bonferroni"`` (default), ``"fdr_bh"`` (Benjamini-Hochberg, also
+        accepted as ``"fdr"``), or ``None`` for uncorrected p-values only.
 
     Returns
     -------
     pandas.DataFrame
-        Dataframe with columns ``factor`` and ``pvalue`` sorted by p-value.
+        Dataframe with a ``factor`` column and the raw ``pvalue`` column. When
+        a correction is requested, the adjusted values are added in a
+        dedicated, clearly named column (``pvalue_bonferroni`` or ``FDR``) so
+        corrected values are never mistaken for raw p-values. Sorted by the
+        adjusted column when present, otherwise by ``pvalue``.
     """
     if group_col not in scores_df.columns:
         raise KeyError(f"Unknown group column: {group_col}")
+    method = _resolve_correction(correction)
 
     factor_cols = list(factors) if factors is not None else [col for col in scores_df.columns if str(col).startswith("Factor")]
     groups = scores_df[group_col].dropna().unique().tolist()
@@ -396,11 +434,14 @@ def kruskal_info(
             pvalue = np.nan
         else:
             _, pvalue = kruskal(*samples)
-        if bonferroni and pd.notna(pvalue):
-            pvalue = min(pvalue * len(factor_cols), 1.0)
         rows.append({"factor": factor, "pvalue": pvalue})
 
-    return pd.DataFrame(rows).sort_values("pvalue", na_position="last").reset_index(drop=True)
+    result = pd.DataFrame(rows, columns=["factor", "pvalue"])
+    if method is not None:
+        adj_col = _CORRECTION_COLUMNS[method]
+        result[adj_col] = _adjust_pvalues(result["pvalue"], method)
+        return result.sort_values(adj_col, na_position="last").reset_index(drop=True)
+    return result.sort_values("pvalue", na_position="last").reset_index(drop=True)
 
 
 def kendall_info(
@@ -408,7 +449,7 @@ def kendall_info(
     ordinal_col: str,
     factors: Sequence[str] | None = None,
     *,
-    bonferroni: bool = True,
+    correction: str | None = "bonferroni",
 ) -> pd.DataFrame:
     """
     Run Kendall tau tests between factor scores and an ordinal variable.
@@ -422,16 +463,23 @@ def kendall_info(
     factors
         Optional subset of factor columns to test. Defaults to all columns that
         start with ``"Factor"``.
-    bonferroni
-        Whether to apply a Bonferroni correction across tested factors.
+    correction
+        Multiple-testing correction applied across the tested factors. One of
+        ``"bonferroni"`` (default), ``"fdr_bh"`` (Benjamini-Hochberg, also
+        accepted as ``"fdr"``), or ``None`` for uncorrected p-values only.
 
     Returns
     -------
     pandas.DataFrame
-        Dataframe with columns ``factor``, ``tau``, and ``pvalue``.
+        Dataframe with ``factor``, ``tau``, and the raw ``pvalue`` columns. When
+        a correction is requested, the adjusted values are added in a
+        dedicated, clearly named column (``pvalue_bonferroni`` or ``FDR``) so
+        corrected values are never mistaken for raw p-values. Sorted by the
+        adjusted column when present, otherwise by ``pvalue``.
     """
     if ordinal_col not in scores_df.columns:
         raise KeyError(f"Unknown ordinal column: {ordinal_col}")
+    method = _resolve_correction(correction)
 
     factor_cols = list(factors) if factors is not None else [col for col in scores_df.columns if str(col).startswith("Factor")]
     rows = []
@@ -445,11 +493,14 @@ def kendall_info(
         else:
             ordinal_codes = pd.Categorical(paired[ordinal_col]).codes
             tau, pvalue = kendalltau(paired[factor], ordinal_codes)
-        if bonferroni and pd.notna(pvalue):
-            pvalue = min(pvalue * len(factor_cols), 1.0)
         rows.append({"factor": factor, "tau": tau, "pvalue": pvalue})
 
-    return pd.DataFrame(rows).sort_values("pvalue", na_position="last").reset_index(drop=True)
+    result = pd.DataFrame(rows, columns=["factor", "tau", "pvalue"])
+    if method is not None:
+        adj_col = _CORRECTION_COLUMNS[method]
+        result[adj_col] = _adjust_pvalues(result["pvalue"], method)
+        return result.sort_values(adj_col, na_position="last").reset_index(drop=True)
+    return result.sort_values("pvalue", na_position="last").reset_index(drop=True)
 
 
 def confidence_ellipses_info(
