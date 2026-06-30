@@ -11,6 +11,7 @@ All notable changes to this project are tracked in the repository changelog.
 
 ### Changed
 
+- `mina.pl.plot_variance_by_view()` and `mina.pl.plot_featureclass_variance()` order factor columns by marginal explained variance (descending); `plot_variance_by_view()` defaults its y-axis label to `"Cell type"` (configurable via `ylab`).
 - `mina.down.kruskal_info()` and `mina.down.kendall_info()` report multiple-testing correction in a dedicated column (`pvalue_bonferroni` by default) and accept a `correction` parameter (`"bonferroni"`, `"fdr_bh"`, or `None`), keeping the raw `pvalue` column.
 
 ### Fixed

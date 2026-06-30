@@ -47,6 +47,7 @@ def plot_reconstruction(
 def plot_variance_by_view(
     variance_df: pd.DataFrame,
     subtitle: str | None = None,
+    ylab: str = "Cell type",
     save_path: str | None = None,
     width: float = 6,
     height: float = 5,
@@ -55,10 +56,12 @@ def plot_variance_by_view(
     p9 = _require_plotnine()
     row_sums = variance_df.groupby("View", as_index=False)["Variance"].sum()
     row_sums["Factor"] = "Sum"
-    col_sums = variance_df.groupby("Factor", as_index=False)["Variance"].sum()
+    col_sums = variance_df.groupby("Factor", as_index=False, observed=False)["Variance"].sum()
     col_sums["View"] = "Sum"
     sorted_views = row_sums.sort_values("Variance", ascending=False)["View"].tolist()
-    factor_levels = list(variance_df["Factor"].cat.categories if isinstance(variance_df["Factor"].dtype, pd.CategoricalDtype) else variance_df["Factor"].unique()) + ["Sum"]
+    # Rank factor columns by their marginal explained variance (descending).
+    sorted_factors = col_sums.sort_values("Variance", ascending=False)["Factor"].tolist()
+    factor_levels = sorted_factors + ["Sum"]
     view_levels = sorted_views + ["Sum"]
     dfm = pd.concat([variance_df, row_sums, col_sums], ignore_index=True)
     dfm["Factor"] = pd.Categorical(dfm["Factor"], categories=factor_levels, ordered=True)
@@ -102,7 +105,7 @@ def plot_variance_by_view(
         + p9.scale_y_continuous(breaks=list(range(len(view_no_sum))), labels=view_no_sum)
         + p9.theme_classic()
         + p9.theme(axis_text_x=p9.element_text(angle=45, hjust=1))
-        + p9.labs(title="Variance explained by MINA factors", subtitle=subtitle, x="Factor", y="View")
+        + p9.labs(title="Variance explained by MINA factors", subtitle=subtitle, x="Factor", y=ylab)
     )
     _ggsave_if(plot, save_path, width, height, dpi)
     return plot
@@ -118,10 +121,12 @@ def plot_featureclass_variance(
     p9 = _require_plotnine()
     row_sums = featureclass_df.groupby("Feature_type", as_index=False)["Variance"].sum()
     row_sums["Factor"] = "Sum"
-    col_sums = featureclass_df.groupby("Factor", as_index=False)["Variance"].sum()
+    col_sums = featureclass_df.groupby("Factor", as_index=False, observed=False)["Variance"].sum()
     col_sums["Feature_type"] = "Sum"
     sorted_types = row_sums.sort_values("Variance", ascending=False)["Feature_type"].tolist()
-    factor_levels = list(pd.unique(featureclass_df["Factor"])) + ["Sum"]
+    # Rank factor columns by their marginal explained variance (descending).
+    sorted_factors = col_sums.sort_values("Variance", ascending=False)["Factor"].tolist()
+    factor_levels = sorted_factors + ["Sum"]
     type_levels = sorted_types + ["Sum"]
     dfm = pd.concat([featureclass_df, row_sums, col_sums], ignore_index=True)
     dfm["Factor"] = pd.Categorical(dfm["Factor"], categories=factor_levels, ordered=True)

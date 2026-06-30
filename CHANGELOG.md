@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning][].
 
 ### Changed
 
+- `mina.pl.plot_variance_by_view()` and `mina.pl.plot_featureclass_variance()` now order the factor columns by their marginal explained variance (descending), matching the existing row ordering. `plot_variance_by_view()` also labels the y-axis `"Cell type"` by default (configurable via the new `ylab` argument).
 - `mina.down.kruskal_info()` and `mina.down.kendall_info()` now report multiple-testing correction in a dedicated, clearly named column instead of overwriting the raw `pvalue`. They expose a `correction` parameter (`"bonferroni"` by default, written to `pvalue_bonferroni`; `"fdr_bh"` written to `FDR`; or `None` for uncorrected p-values), and always keep the raw `pvalue` column.
 
 ### Fixed
