@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning][].
 
 - MuVIcell-derived downstream helpers for factor score tables, reconstruction summaries, variance-by-view summaries, feature-class variance summaries, variable loading tables, selected-feature extraction, Kruskal and Kendall tests, confidence ellipse coordinates, and top-feature ranking by view or feature class.
 - MuVIcell-derived plotting helpers for reconstruction summaries, variance-by-view tiles, feature-class variance tiles, top-loading heatmaps, selected-feature heatmaps, factor violins, and confidence ellipses.
-- Documentation examples: reproduction of the MuVIcell tutorial with MINA (shipping the exported synthetic MuData), a full MIBI colorectal-cancer spatial-proteomics case study (cell-type-stratified pseudobulk, spatial neighbourhood-interaction view, multicellular factors and coordination networks), and a best-practices guide for spatial proteomics.
+- Documentation examples: reproduction of the MuVIcell tutorial with MINA (shipping the exported synthetic MuData), a full MIBI colorectal-cancer spatial-proteomics case study (cell-type-stratified pseudobulk, spatial neighbourhood-interaction view, multicellular factors and coordination networks), a faithful reproduction of the CRC MOFACell analysis from the precomputed feature object (linear, non-negativity-free 10-factor decomposition, variance per view and feature class, factor-stage associations and biplots), and a best-practices guide for spatial proteomics.
 
 
 ## [0.1.0] - 2026-06-02

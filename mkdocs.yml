@@ -72,6 +72,7 @@ nav:
   - Examples:
       - Reproducing the MuVIcell tutorial: notebooks/Example_MuVIcell.ipynb
       - Spatial proteomics case study (MIBI CRC): notebooks/Example_MIBI_CRC.ipynb
+      - CRC multicellular factor analysis (MOFACell reproduction): notebooks/Example_CRC_MOFACell.ipynb
       - Best practices for spatial proteomics: notebooks/BestPractices_SpatialProteomics.ipynb
   - API:
       - Overview: api/index.md

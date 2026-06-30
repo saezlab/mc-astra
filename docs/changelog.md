@@ -7,7 +7,7 @@ All notable changes to this project are tracked in the repository changelog.
 ### Added
 
 - MuVIcell-derived downstream and plotting helpers (factor scores, reconstruction, variance summaries, loadings, statistical tests, confidence ellipses, top-feature ranking).
-- Documentation examples: reproducing the MuVIcell tutorial with MINA, a full MIBI colorectal-cancer spatial-proteomics case study, and a best-practices guide for spatial proteomics.
+- Documentation examples: reproducing the MuVIcell tutorial with MINA, a full MIBI colorectal-cancer spatial-proteomics case study, a faithful reproduction of the CRC MOFACell analysis from the precomputed feature object, and a best-practices guide for spatial proteomics.
 
 ### Changed
 
