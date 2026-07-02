@@ -119,7 +119,7 @@ Particularly it enables the guidance of factors using information of samples and
 
 ## Documentation Map
 
-- Start with the [collection of vignettes](tutorials.md) that explain the basics of multicellular factor analysis.
+- Start with the [tutorials](tutorials.md), which teach multicellular factor analysis step by step and link to real-data **case studies**.
 - Explore the [API reference](api/index.md).
 - See [contributing](contributing.md) for local development and docs builds.
 

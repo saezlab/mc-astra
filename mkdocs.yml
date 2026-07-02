@@ -7,6 +7,11 @@ docs_dir: docs
 site_dir: site
 strict: true
 
+# Keep Jupyter checkpoint copies out of the build (they would otherwise be
+# picked up by mkdocs-jupyter and fail the strict build as orphan pages).
+exclude_docs: |
+  .ipynb_checkpoints/
+
 theme:
   name: material
   palette:
@@ -61,19 +66,19 @@ extra_css:
 nav:
   - Home: index.md
   - Tutorials:
-      - Available aplications : tutorials.md
-      - Multicellular Factor Analysis with MOFA: notebooks/GetStarted_MOFA.ipynb
-      - Multicellular Programs Guided by Patient Covariates: notebooks/GetStarted_SOFA.ipynb
-      - Multicellular Programs Across Experimental Groups: notebooks/GetStarted_groups.ipynb
-      - Multicellular Factor Analysis with Functional Views: notebooks/GetStarted_FunctionalViews.ipynb
-      - Multicellular Factor Analysis guided by pathway annotations: notebooks/GetStarted_FunctionalViews_guided.ipynb
-      - Multicellular Factor Analysis with spatial data: notebooks/GetStarted_spatial.ipynb
-      - Integration with patpy and evaluating patient maps: notebooks/EvaluationOfModels.ipynb
-  - Examples:
-      - Reproducing the MuVIcell tutorial: notebooks/Example_MuVIcell.ipynb
-      - Spatial proteomics case study (MIBI CRC): notebooks/Example_MIBI_CRC.ipynb
-      - CRC multicellular factor analysis (MOFACell reproduction): notebooks/Example_CRC_MOFACell.ipynb
+      - Overview: tutorials.md
+      - Multicellular factor analysis with MOFA: notebooks/GetStarted_MOFA.ipynb
+      - Guided by patient covariates (SOFA): notebooks/GetStarted_SOFA.ipynb
+      - Across experimental groups: notebooks/GetStarted_groups.ipynb
+      - Functional views: notebooks/GetStarted_FunctionalViews.ipynb
+      - Guided by pathway annotations: notebooks/GetStarted_FunctionalViews_guided.ipynb
+      - Spatial data: notebooks/GetStarted_spatial.ipynb
+      - Evaluating patient maps (patpy): notebooks/EvaluationOfModels.ipynb
+      - From MuVIcell to MINA: notebooks/Example_MuVIcell.ipynb
       - Best practices for spatial proteomics: notebooks/BestPractices_SpatialProteomics.ipynb
+  - Case studies:
+      - Spatial proteomics - MIBI colorectal cancer: notebooks/Example_MIBI_CRC.ipynb
+      - CRC multicellular factors (MOFACell reproduction): notebooks/Example_CRC_MOFACell.ipynb
   - API:
       - Overview: api/index.md
       - Upstream: api/up.md
