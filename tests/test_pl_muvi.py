@@ -1,4 +1,5 @@
 import pandas as pd
+from tests.test_down_muvi import _make_model_adata
 
 from mina.down import (
     confidence_ellipses_info,
@@ -18,14 +19,11 @@ from mina.pl import (
     plot_top_loadings_heatmap,
     plot_variance_by_view,
 )
-from tests.test_down_muvi import _make_model_adata
 
 
 def test_plotnine_smoke_for_muvi_ported_plots():
     model_adata = _make_model_adata()
-    scores = factor_scores_info(model_adata).join(
-        pd.DataFrame({"group": ["A", "B"]}, index=model_adata.obs_names)
-    )
+    scores = factor_scores_info(model_adata).join(pd.DataFrame({"group": ["A", "B"]}, index=model_adata.obs_names))
     variance_df = variance_by_view_info(model_adata)
     loadings = variable_loadings_info(model_adata)
     selected = selected_features_info(loadings, [("gene1", "A"), ("gene3", "B")])

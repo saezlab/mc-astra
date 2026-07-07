@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import anndata as ad
 import numpy as np
 import pandas as pd
-import anndata as ad
-
 from scipy.spatial.distance import pdist, squareform
 
 try:
@@ -84,8 +83,7 @@ class PrecomputedSampleRepresentation(SampleRepresentationMethod):
             missing = representation.index.difference(metadata.index)
             if len(missing) > 0:
                 raise ValueError(
-                    "`metadata` is missing samples from `representation.index`; "
-                    f"for example: {missing[:5].tolist()}"
+                    f"`metadata` is missing samples from `representation.index`; for example: {missing[:5].tolist()}"
                 )
 
             self.metadata = metadata.loc[representation.index].copy()
@@ -118,7 +116,6 @@ class PrecomputedSampleRepresentation(SampleRepresentationMethod):
         Calculate a sample x sample distance matrix from the precomputed
         representation.
         """
-
         if self._distances is not None and not force:
             return self._distances
 
@@ -144,7 +141,6 @@ class PrecomputedSampleRepresentation(SampleRepresentationMethod):
         """
         Convert the precomputed sample representation to an AnnData object.
         """
-
         metadata = self.metadata if metadata is None else metadata.copy()
         metadata.index = metadata.index.astype(str)
 

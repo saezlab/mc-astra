@@ -74,11 +74,9 @@ nav:
       - Guided by pathway annotations: notebooks/GetStarted_FunctionalViews_guided.ipynb
       - Spatial data: notebooks/GetStarted_spatial.ipynb
       - Evaluating patient maps (patpy): notebooks/EvaluationOfModels.ipynb
-      - From MuVIcell to MINA: notebooks/Example_MuVIcell.ipynb
       - Best practices for spatial proteomics: notebooks/BestPractices_SpatialProteomics.ipynb
   - Case studies:
-      - Spatial proteomics - MIBI colorectal cancer: notebooks/Example_MIBI_CRC.ipynb
-      - CRC multicellular factors (MOFACell reproduction): notebooks/Example_CRC_MOFACell.ipynb
+      - Spatial proteomics - CRC multicellular factors: notebooks/Example_CRC_spatialproteomics.ipynb
   - API:
       - Overview: api/index.md
       - Upstream: api/up.md

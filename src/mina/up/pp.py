@@ -30,7 +30,6 @@ def extract_metadata_from_obs(obs: pd.DataFrame, groupby: str, sort: bool = Fals
     pandas.DataFrame
         Group-level metadata table.
     """
-
     stable_cols = []
 
     for col in obs.columns:
@@ -38,11 +37,7 @@ def extract_metadata_from_obs(obs: pd.DataFrame, groupby: str, sort: bool = Fals
             continue
 
         # Group values and check if each group has only one unique value
-        is_stable = (
-            obs.groupby(groupby, observed=False)[col]
-            .apply(lambda x: x.dropna().nunique() <= 1)
-            .all()
-        )
+        is_stable = obs.groupby(groupby, observed=False)[col].apply(lambda x: x.dropna().nunique() <= 1).all()
 
         if is_stable:
             stable_cols.append(col)
@@ -88,7 +83,6 @@ def split_anndata_by_celltype(pdata, grouping="cell_type"):
     dict[str, anndata.AnnData]
         Dictionary mapping cell types to AnnData objects.
     """
-
     if grouping not in pdata.obs.columns:
         raise ValueError(f"'{grouping}' not found in `pdata.obs`.")
 
@@ -134,7 +128,6 @@ def norm_log(
     None
         The input dictionary is modified in place.
     """
-
     if method not in {"log1p_scale", "zscore"}:
         raise ValueError("method must be one of ['log1p_scale', 'zscore']")
 
@@ -388,20 +381,32 @@ def preprocess_views(
     if filter_views:
         filter_views_qc(
             anndata_dict,
-            **{k: v for k, v in kwargs.items() if k in {"min_cells_per_gene", "min_genes_per_cell", "max_genes_per_cell", "view_specific_filters"}},
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k in {"min_cells_per_gene", "min_genes_per_cell", "max_genes_per_cell", "view_specific_filters"}
+            },
         )
 
     if normalize:
         norm_log(
             anndata_dict,
             method=norm_method,
-            **{k: v for k, v in kwargs.items() if k in {"target_sum", "exclude_highly_expressed", "max_value", "center"}},
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k in {"target_sum", "exclude_highly_expressed", "max_value", "center"}
+            },
         )
 
     if find_hvg:
         find_highly_variable_genes(
             anndata_dict,
-            **{k: v for k, v in kwargs.items() if k in {"n_top_genes", "view_specific_n_genes", "flavor", "fallback_manual"}},
+            **{
+                k: v
+                for k, v in kwargs.items()
+                if k in {"n_top_genes", "view_specific_n_genes", "flavor", "fallback_manual"}
+            },
         )
 
     if subset_hvg:

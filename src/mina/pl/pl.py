@@ -1,11 +1,11 @@
 # Dependencies
 import matplotlib.gridspec as gridspec
-from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib.patches import Rectangle
 
 # Plotting
 
@@ -42,7 +42,6 @@ def plot_view_samples(
     fig : matplotlib.figure.Figure or None
         The created Figure object if ``return_fig`` is True, otherwise None.
     """
-
     log_view_counts = []
     view_counts = []
     view_samples = []
@@ -81,9 +80,7 @@ def plot_view_samples(
         return data
 
 
-def plot_view_genes(
-    anndata_dict, min_genes, table=False, figsize=(5, 5), dpi=100, ax=None, return_fig=False, **kwargs
-):
+def plot_view_genes(anndata_dict, min_genes, table=False, figsize=(5, 5), dpi=100, ax=None, return_fig=False, **kwargs):
     """
     Quality control plot to assess the quality of the obtained pseudobulk samples.
 
@@ -113,7 +110,6 @@ def plot_view_genes(
     fig : matplotlib.figure.Figure or None
         The created Figure object if ``return_fig`` is True, otherwise None.
     """
-
     # Extract obs
     log_view_counts = []
     view_counts = []
@@ -190,7 +186,6 @@ def plot_sample_coverage(
         Summary tables if ``table`` is True, figures if ``return_fig`` is True,
         otherwise None.
     """
-
     # Validate dict-style thresholds if provided
     if isinstance(threshold, dict):
         missing = set(anndata_dict.keys()) - set(threshold.keys())
@@ -295,6 +290,7 @@ def plot_sample_coverage(
 
 # Associations
 
+
 def plot_pval_tiles(p_df: pd.DataFrame, star_threshold: float = 0.05, ax=None, title: str | None = None):
     """
     Create a tile plot colored by ``-log10(p)`` values, with tiles annotated
@@ -311,7 +307,6 @@ def plot_pval_tiles(p_df: pd.DataFrame, star_threshold: float = 0.05, ax=None, t
     title : str or None
         Optional title for the plot.
     """
-
     # Copy to avoid modifying the input
     p = p_df.copy()
 
@@ -363,6 +358,7 @@ def plot_pval_tiles(p_df: pd.DataFrame, star_threshold: float = 0.05, ax=None, t
         return fig, ax
     return ax
 
+
 # Functional enrichment
 
 
@@ -404,7 +400,6 @@ def plot_mcell_funcomics(
     use_var : bool
         If True, rank features by variance instead of mean absolute value.
     """
-
     views = []
     filtered_data = {}
 
@@ -758,6 +753,7 @@ def plot_features_per_view(
 
     plt.show()
 
+
 def plot_comm_overview(
     plot_df,
     tile_width=0.6,
@@ -801,7 +797,6 @@ def plot_comm_overview(
     -------
     fig, ax
     """
-
     required_cols = {
         "source",
         "target",
@@ -817,29 +812,16 @@ def plot_comm_overview(
     if plot_df.empty:
         raise ValueError("`plot_df` is empty. Nothing to plot.")
 
-    interaction_order = (
-        plot_df["interaction"]
-        .drop_duplicates()
-        .tolist()
-    )
+    interaction_order = plot_df["interaction"].drop_duplicates().tolist()
 
     source_order = plot_df["source"].drop_duplicates().tolist()
     target_order = plot_df["target"].drop_duplicates().tolist()
 
-    source_x = {
-        source: i
-        for i, source in enumerate(source_order)
-    }
+    source_x = {source: i for i, source in enumerate(source_order)}
 
-    target_x = {
-        target: i + len(source_order) + 1
-        for i, target in enumerate(target_order)
-    }
+    target_x = {target: i + len(source_order) + 1 for i, target in enumerate(target_order)}
 
-    y_pos = {
-        interaction: i
-        for i, interaction in enumerate(interaction_order[::-1])
-    }
+    y_pos = {interaction: i for i, interaction in enumerate(interaction_order[::-1])}
 
     if figsize is None:
         width = max(6, 0.35 * (len(source_order) + len(target_order) + 1))
@@ -852,12 +834,11 @@ def plot_comm_overview(
         fig = ax.figure
 
     sign_colors = {
-        1: "#3b82f6",    # positive
+        1: "#3b82f6",  # positive
         -1: "#7e22ce",  # negative
     }
 
     for _, row in plot_df.iterrows():
-
         y = y_pos[row["interaction"]]
         sign = int(row["coherent_sign"])
 
@@ -873,7 +854,6 @@ def plot_comm_overview(
         ]
 
         for x in x_values:
-
             ax.add_patch(
                 Rectangle(
                     (x - tile_width / 2, y - tile_height / 2),
@@ -898,11 +878,7 @@ def plot_comm_overview(
     # x-axis labels
     x_labels = source_order + [""] + target_order
 
-    x_positions = (
-        list(range(len(source_order)))
-        + [len(source_order)]
-        + list(target_x.values())
-    )
+    x_positions = list(range(len(source_order))) + [len(source_order)] + list(target_x.values())
 
     ax.set_xticks(x_positions)
     ax.set_xticklabels(x_labels, rotation=45, ha="right")

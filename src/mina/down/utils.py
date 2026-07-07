@@ -50,7 +50,7 @@ def model_to_anndata(
     factors_dict = model.get_factors()
     if not isinstance(factors_dict, dict) or len(factors_dict) == 0:
         raise ValueError("model.get_factors() returned no groups.")
-    
+
     # Clean factor names: remove spaces and ensure they start with 'Factor'
     def _clean_factor(name: object) -> str:
         s = str(name).replace(" ", "")
@@ -68,7 +68,7 @@ def model_to_anndata(
     # Now restrict/reorder to the union of samples you already computed
     Z = Z_all.reindex(unique_samples)
 
-        # ---------- 4) Explained variance per factor (R^2) ----------
+    # ---------- 4) Explained variance per factor (R^2) ----------
     # model.get_r2() -> DataFrame with columns:
     # group, view, component, R2
     r2_df = model.get_r2()
@@ -87,9 +87,7 @@ def model_to_anndata(
     r2_long["component"] = r2_long["component"].map(_clean_factor)
 
     # Encode R2 columns as "<view>:<group>", as in the previous implementation
-    r2_long["view_group"] = (
-        r2_long["view"].astype(str) + ":" + r2_long["group"].astype(str)
-    )
+    r2_long["view_group"] = r2_long["view"].astype(str) + ":" + r2_long["group"].astype(str)
 
     # Convert long format to factor × view_group matrix
     X = r2_long.pivot(
@@ -116,7 +114,7 @@ def model_to_anndata(
     gene_weights = pd.concat(W, axis=1)
     gene_weights.index = [_clean_factor(c) for c in gene_weights.index]
     # Ensure rows of gene_weights (factors) match Z.columns order
-    #gene_weights = gene_weights.T
+    # gene_weights = gene_weights.T
 
     # ---------- 6) Build the AnnData (samples × factors) ----------
     # Convert Z to dense numpy. Handle potential sparse matrices defensively.
@@ -170,6 +168,7 @@ def model_to_anndata(
 
     return model_adata
 
+
 def restore_anns_factor(
     factor_names,
     annotation_source,
@@ -201,24 +200,19 @@ def restore_anns_factor(
     new_names = factor_names.copy()
 
     for source in sources:
-        matches = [
-            i for i, name in enumerate(factor_names)
-            if str(name) == source or str(name).endswith(f"_{source}")
-        ]
+        matches = [i for i, name in enumerate(factor_names) if str(name) == source or str(name).endswith(f"_{source}")]
 
         if len(matches) == 0:
             continue
 
         if strict and len(matches) > 1:
-            raise ValueError(
-                f"Annotation source {source!r} matched multiple factors: "
-                f"{factor_names[matches].tolist()}"
-            )
+            raise ValueError(f"Annotation source {source!r} matched multiple factors: {factor_names[matches].tolist()}")
 
         for i in matches:
             new_names[i] = "Factor" + source
 
     return new_names
+
 
 def split_by_view(arch_gex: pd.DataFrame) -> dict[str, pd.DataFrame]:
     """

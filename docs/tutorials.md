@@ -38,19 +38,11 @@ tutorials that match your data and question.
 - [Evaluating patient maps (patpy)](notebooks/EvaluationOfModels.ipynb) —
   integrate MINA representations with patpy and assess patient maps.
 
-## Coming from MuVIcell
-
-- [From MuVIcell to MINA](notebooks/Example_MuVIcell.ipynb) —
-  reproduce the MuVIcell tutorial with MINA, mapping each step to its MINA
-  equivalent.
 
 ## Case studies
 
 End-to-end analyses on real datasets, reproducing published results with MINA:
 
-- [Spatial proteomics: MIBI colorectal cancer](notebooks/Example_MIBI_CRC.ipynb) —
-  build cell-type-stratified and spatial views from a single-cell table and
-  learn stage-associated multicellular programs and coordination networks.
-- [CRC multicellular factor analysis (MOFACell reproduction)](notebooks/Example_CRC_MOFACell.ipynb) —
-  reproduce the colorectal-cancer MOFACell analysis from the precomputed feature
+- [CRC multicellular factor analysis](notebooks/Example_CRC_spatialproteomics.ipynb) —
+  reproduce the colorectal-cancer  analysis from the precomputed feature
   object.

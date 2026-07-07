@@ -8,24 +8,22 @@ and this project adheres to [Semantic Versioning][].
 [keep a changelog]: https://keepachangelog.com/en/1.0.0/
 [semantic versioning]: https://semver.org/spec/v2.0.0.html
 
-## [Unreleased]
-
-### Changed
-
-- Reorganised the documentation navigation around user goals: the learning-oriented notebooks live under **Tutorials** and the real-data reproductions under a new **Case studies** section (the previous, ambiguous "Examples" grouping was removed). `tutorials.md` is now a grouped landing page linking every tutorial and case study, and Jupyter checkpoint copies are excluded from the build.
-- `mina.pl.plot_variance_by_view()` and `mina.pl.plot_featureclass_variance()` now order the factor columns by their marginal explained variance (descending), matching the existing row ordering. `plot_variance_by_view()` also labels the y-axis `"Cell type"` by default (configurable via the new `ylab` argument).
-- `mina.down.kruskal_info()` and `mina.down.kendall_info()` now report multiple-testing correction in a dedicated, clearly named column instead of overwriting the raw `pvalue`. They expose a `correction` parameter (`"bonferroni"` by default, written to `pvalue_bonferroni`; `"fdr_bh"` written to `FDR`; or `None` for uncorrected p-values), and always keep the raw `pvalue` column.
-
-### Fixed
-
-- `mina.down.kendall_info()` now drops missing `(factor, ordinal)` pairs before running Kendall tau, preventing single missing factor values from turning `tau` and `pvalue` into `NaN` for the whole test.
+## Unreleased
 
 ### Added
 
-- MuVIcell-derived downstream helpers for factor score tables, reconstruction summaries, variance-by-view summaries, feature-class variance summaries, variable loading tables, selected-feature extraction, Kruskal and Kendall tests, confidence ellipse coordinates, and top-feature ranking by view or feature class.
-- MuVIcell-derived plotting helpers for reconstruction summaries, variance-by-view tiles, feature-class variance tiles, top-loading heatmaps, selected-feature heatmaps, factor violins, and confidence ellipses.
-- Documentation examples: reproduction of the MuVIcell tutorial with MINA (shipping the exported synthetic MuData), a full MIBI colorectal-cancer spatial-proteomics case study (cell-type-stratified pseudobulk, spatial neighbourhood-interaction view, multicellular factors and coordination networks), a faithful reproduction of the CRC MOFACell analysis from the precomputed feature object (linear, non-negativity-free 10-factor decomposition, variance per view and feature class, factor-stage associations and biplots), and a best-practices guide for spatial proteomics.
+- MuVIcell-derived downstream and plotting helpers (factor scores, reconstruction, variance summaries, loadings, statistical tests, confidence ellipses, top-feature ranking).
+- Documentation examples: reproducing the full MuVIcell MIBI colorectal-cancer spatial-proteomics case study, and a best-practices guide for spatial proteomics.
 
+### Changed
+
+- Documentation navigation reorganised into **Tutorials** (learning-oriented notebooks) and **Case studies** (real-data reproductions); `tutorials.md` now lists every tutorial and case study.
+- `mina.pl.plot_variance_by_view()` and `mina.pl.plot_featureclass_variance()` order factor columns by marginal explained variance (descending); `plot_variance_by_view()` defaults its y-axis label to `"Cell type"` (configurable via `ylab`).
+- `mina.down.kruskal_info()` and `mina.down.kendall_info()` report multiple-testing correction in a dedicated column (`pvalue_bonferroni` by default) and accept a `correction` parameter (`"bonferroni"`, `"fdr_bh"`, or `None`), keeping the raw `pvalue` column.
+
+### Fixed
+
+- `mina.down.kendall_info()` now drops missing `(factor, ordinal)` pairs before running Kendall tau.
 
 ## [0.1.0] - 2026-06-02
 

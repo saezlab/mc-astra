@@ -7,11 +7,11 @@ All notable changes to this project are tracked in the repository changelog.
 ### Added
 
 - MuVIcell-derived downstream and plotting helpers (factor scores, reconstruction, variance summaries, loadings, statistical tests, confidence ellipses, top-feature ranking).
-- Documentation examples: reproducing the MuVIcell tutorial with MINA, a full MIBI colorectal-cancer spatial-proteomics case study, a faithful reproduction of the CRC MOFACell analysis from the precomputed feature object, and a best-practices guide for spatial proteomics.
+- Documentation examples: reproducing the full MuVIcell MIBI colorectal-cancer spatial-proteomics case study, and a best-practices guide for spatial proteomics.
 
 ### Changed
 
-- Documentation navigation reorganised into **Tutorials** (learning-oriented notebooks) and **Case studies** (real-data reproductions); the ambiguous "Examples" grouping was removed and `tutorials.md` now lists every tutorial and case study.
+- Documentation navigation reorganised into **Tutorials** (learning-oriented notebooks) and **Case studies** (real-data reproductions); `tutorials.md` now lists every tutorial and case study.
 - `mina.pl.plot_variance_by_view()` and `mina.pl.plot_featureclass_variance()` order factor columns by marginal explained variance (descending); `plot_variance_by_view()` defaults its y-axis label to `"Cell type"` (configurable via `ylab`).
 - `mina.down.kruskal_info()` and `mina.down.kendall_info()` report multiple-testing correction in a dedicated column (`pvalue_bonferroni` by default) and accept a `correction` parameter (`"bonferroni"`, `"fdr_bh"`, or `None`), keeping the raw `pvalue` column.
 

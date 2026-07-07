@@ -300,4 +300,3 @@ def test_filter_hvgs_filters_and_drops_hvg_columns(monkeypatch):
     assert list(views["A"].var_names) == ["g1", "g3"]
     for col in ["highly_variable", "means", "dispersions", "dispersions_norm"]:
         assert col not in views["A"].var.columns
-

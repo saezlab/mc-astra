@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
@@ -42,9 +42,7 @@ def _resolve_correction(correction: str | None) -> str | None:
     aliases = {"fdr": "fdr_bh", "bh": "fdr_bh", "none": None}
     key = aliases.get(key, key)
     if key is not None and key not in _CORRECTION_COLUMNS:
-        raise ValueError(
-            f"correction must be one of {sorted(_CORRECTION_COLUMNS)}, 'fdr', or None; got {correction!r}"
-        )
+        raise ValueError(f"correction must be one of {sorted(_CORRECTION_COLUMNS)}, 'fdr', or None; got {correction!r}")
     return key
 
 
@@ -131,7 +129,9 @@ def reconstruction_info(
     """
     scores = np.asarray(model_adata.X, dtype=float)
     loadings_by_view = _loadings_by_view(model_adata)
-    selected_views = list(views) if views is not None else [view for view in loadings_by_view if view in model_adata.obsm]
+    selected_views = (
+        list(views) if views is not None else [view for view in loadings_by_view if view in model_adata.obsm]
+    )
 
     rows = []
     for view in selected_views:
@@ -201,10 +201,7 @@ def variance_by_view_info(
     if not aggregate_groups:
         return variance_long.loc[:, ["Factor", "View", "Group", "View_group", "Variance"]]
 
-    grouped = (
-        variance_long.groupby(["Factor", "View"], observed=False, as_index=False)["Variance"]
-        .agg(agg)
-    )
+    grouped = variance_long.groupby(["Factor", "View"], observed=False, as_index=False)["Variance"].agg(agg)
     grouped["Factor"] = pd.Categorical(grouped["Factor"], categories=factor_order, ordered=True)
     return grouped.loc[:, ["Factor", "View", "Variance"]]
 
@@ -253,11 +250,15 @@ def featureclass_variance_info(
             columns_key = f"{view}_columns"
             if columns_key not in model_adata.uns:
                 continue
-            observed = pd.DataFrame(
-                np.asarray(model_adata.obsm[view], dtype=float),
-                index=model_adata.obs_names.astype(str),
-                columns=[str(col) for col in model_adata.uns[columns_key]],
-            ).loc[:, view_features].to_numpy()
+            observed = (
+                pd.DataFrame(
+                    np.asarray(model_adata.obsm[view], dtype=float),
+                    index=model_adata.obs_names.astype(str),
+                    columns=[str(col) for col in model_adata.uns[columns_key]],
+                )
+                .loc[:, view_features]
+                .to_numpy()
+            )
             weights = view_loadings.loc[:, view_features].to_numpy(dtype=float)
             factor_r2 = []
             for idx in range(len(factor_order)):
@@ -421,7 +422,9 @@ def kruskal_info(
         raise KeyError(f"Unknown group column: {group_col}")
     method = _resolve_correction(correction)
 
-    factor_cols = list(factors) if factors is not None else [col for col in scores_df.columns if str(col).startswith("Factor")]
+    factor_cols = (
+        list(factors) if factors is not None else [col for col in scores_df.columns if str(col).startswith("Factor")]
+    )
     groups = scores_df[group_col].dropna().unique().tolist()
     rows = []
 
@@ -481,7 +484,9 @@ def kendall_info(
         raise KeyError(f"Unknown ordinal column: {ordinal_col}")
     method = _resolve_correction(correction)
 
-    factor_cols = list(factors) if factors is not None else [col for col in scores_df.columns if str(col).startswith("Factor")]
+    factor_cols = (
+        list(factors) if factors is not None else [col for col in scores_df.columns if str(col).startswith("Factor")]
+    )
     rows = []
 
     for factor in factor_cols:
@@ -648,7 +653,11 @@ def top_features_by_class_info(
         factor_df = variable_loadings.loc[:, ["variable", "view", factor]].copy()
         factor_df["feature_type"] = factor_df["variable"].map(feature_types).fillna("NA")
         factor_df["score"] = factor_df[factor].abs() if by_abs else factor_df[factor]
-        top = factor_df.sort_values("score", ascending=False).groupby("feature_type", group_keys=False).head(top_per_class)
+        top = (
+            factor_df.sort_values("score", ascending=False)
+            .groupby("feature_type", group_keys=False)
+            .head(top_per_class)
+        )
         top = top.drop(columns="score").rename(columns={factor: "weight"})
         top["factor"] = factor
         rows.append(top)

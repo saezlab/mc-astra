@@ -176,10 +176,7 @@ def test_variance_by_view_info_aggregates_and_preserves_group_detail():
         ("Factor2", "A"): 0.9,
         ("Factor2", "B"): 0.6,
     }
-    observed = {
-        (row.Factor, row.View): row.Variance
-        for row in aggregated.itertuples(index=False)
-    }
+    observed = {(row.Factor, row.View): row.Variance for row in aggregated.itertuples(index=False)}
 
     assert observed.keys() == expected.keys()
     for key, value in expected.items():

@@ -190,8 +190,12 @@ def plot_top_loadings_heatmap(
     if factor not in variable_loadings.columns:
         raise ValueError(f"Factor column not found: {factor}")
     ranking = variable_loadings[factor].abs() if by_abs else variable_loadings[factor]
-    top_vars = variable_loadings.assign(score=ranking).sort_values("score", ascending=False).head(top_n)["variable"].tolist()
-    plot_df = variable_loadings[variable_loadings["variable"].isin(top_vars)].loc[:, ["variable", "view", factor]].copy()
+    top_vars = (
+        variable_loadings.assign(score=ranking).sort_values("score", ascending=False).head(top_n)["variable"].tolist()
+    )
+    plot_df = (
+        variable_loadings[variable_loadings["variable"].isin(top_vars)].loc[:, ["variable", "view", factor]].copy()
+    )
     plot = (
         p9.ggplot(plot_df)
         + p9.aes(x="view", y="variable", fill=factor)

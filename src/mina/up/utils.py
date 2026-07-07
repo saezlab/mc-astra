@@ -1,8 +1,9 @@
 # Dependencies
-from anndata import AnnData
 import anndata as ad
 import decoupler as dc
 import pandas as pd
+from anndata import AnnData
+
 
 # This function saves the raw counts in a layer called 'raw_counts' for each AnnData object in a dictionary
 def save_raw_counts(anndata_dict, layer_name="raw_counts"):
@@ -21,7 +22,6 @@ def save_raw_counts(anndata_dict, layer_name="raw_counts"):
     None
         The input dictionary is modified in place.
     """
-
     for _view_name, adata in anndata_dict.items():
         # Save the current count matrix (adata.X) to a new layer
         adata.layers[layer_name] = adata.X.copy()
@@ -56,14 +56,13 @@ def append_view_to_var(anndata_dict, join=":"):
         adata.var_names = new_var
 
 
-
 def merge_adata_views(
     studies: list[dict[str, AnnData]],
     study_names: list[str],
     view_mode: str = "union",
     min_view_studies: int = 2,
     var_mode: str = "outer",
-    min_var_studies: int = 2
+    min_var_studies: int = 2,
 ) -> dict[str, AnnData]:
     """
     Merge multiple study-level AnnData dictionaries into unified views.
@@ -121,7 +120,6 @@ def merge_adata_views(
             - The resulting AnnData objects are copies; modifying them will
               not affect the original input studies.
     """
-
     if len(studies) != len(study_names):
         raise ValueError("study_names must have the same length as studies")
 
@@ -132,7 +130,6 @@ def merge_adata_views(
         raise ValueError("min_var_studies must be >= 2")
 
     n_studies = len(studies)
-
 
     view_counts = {}
     for study in studies:
@@ -148,10 +145,9 @@ def merge_adata_views(
     else:
         raise ValueError(f"Unknown view_mode: {view_mode}")
 
-
     view_to_adatas = {view: [] for view in keep_views}
 
-    for study_name, study in zip(study_names, studies):
+    for study_name, study in zip(study_names, studies, strict=False):
         for view in keep_views:
             if view in study:
                 a = study[view].copy()
@@ -161,19 +157,12 @@ def merge_adata_views(
     merged = {}
 
     for view, adatas in view_to_adatas.items():
-
         if len(adatas) == 1:
             merged_adata = adatas[0].copy()
         else:
-            merged_adata = ad.concat(
-                adatas,
-                axis=0,
-                join="outer",
-                merge="unique"
-            )
+            merged_adata = ad.concat(adatas, axis=0, join="outer", merge="unique")
 
         if len(adatas) > 1:
-
             var_counts = {}
             for a in adatas:
                 for v in a.var_names:
@@ -207,16 +196,12 @@ def merge_adata_views(
                 df = df.loc[df.index.intersection(ordered_vars)]
                 var_frames.append(df)
 
-            combined_var = (
-                pd.concat(var_frames)
-                .loc[~pd.concat(var_frames).index.duplicated(keep="first")]
-            )
+            combined_var = pd.concat(var_frames).loc[~pd.concat(var_frames).index.duplicated(keep="first")]
 
             # Reindex to ensure full ordered_vars coverage
             combined_var = combined_var.reindex(ordered_vars)
 
             merged_adata.var = combined_var
-
 
         obs_cols = None
         for a in adatas:
@@ -237,7 +222,7 @@ def merge_adata_views(
     return merged
 
 
-def convert_views_to_functions(anndata_dict, net, tmin = 5):
+def convert_views_to_functions(anndata_dict, net, tmin=5):
     """
     Applies decoupler's run ulm function to each AnnData object in the input dictionary using the provided network.
 
@@ -268,13 +253,13 @@ def convert_views_to_functions(anndata_dict, net, tmin = 5):
     None
         The function modifies the input dictionary in place.
     """
-
     for cell_type, adata in anndata_dict.items():
         dc.mt.ulm(data=adata, net=net, tmin=tmin)
         score = dc.pp.get_obsm(adata=adata, key="score_ulm")
 
         # Update the dictionary with the filtered AnnData object
         anndata_dict[cell_type] = score.copy()
+
 
 def make_membership_matrix(adata, pathways_df, gene_col="genesymbol", pathway_col="pathway"):
     """
@@ -314,6 +299,7 @@ def make_membership_matrix(adata, pathways_df, gene_col="genesymbol", pathway_co
 
     return membership
 
+
 def _require_squidpy():
     try:
         import squidpy as sq
@@ -327,6 +313,7 @@ def _require_squidpy():
         ) from e
 
     return sq
+
 
 def get_nhood_enrichment_feats(
     adata,
@@ -379,14 +366,10 @@ def get_nhood_enrichment_feats(
 
     missing_obs = [key for key in [sample_key, cluster_key] if key not in adata.obs]
     if missing_obs:
-        raise KeyError(
-            f"Missing required columns in adata.obs: {missing_obs}"
-        )
+        raise KeyError(f"Missing required columns in adata.obs: {missing_obs}")
 
     if spatial_key not in adata.obsm:
-        raise KeyError(
-            f"Missing spatial coordinates in adata.obsm['{spatial_key}']."
-        )
+        raise KeyError(f"Missing spatial coordinates in adata.obsm['{spatial_key}'].")
 
     adata = adata.copy()
 

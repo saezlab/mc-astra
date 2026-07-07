@@ -385,4 +385,3 @@ def test_merge_adata_views_returns_copies():
 
     merged["B"].X[0, 0] = 999
     assert s1["B"].X[0, 0] == 9
-
