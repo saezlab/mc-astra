@@ -11,11 +11,14 @@ from .tl import (
     multiview_to_wide,
     project_wide_to_factors,
     run_ulm_per_view,
+    calculate_pat_archs,
+    get_arch_pats_values,
 )
 from .utils import (
     model_to_anndata,
     restore_anns_factor,
     split_by_view,
+    identify_outliers,
 )
 
 __all__ = [
@@ -32,4 +35,7 @@ __all__ = [
     "split_by_view",
     "lr_usage",
     "restore_anns_factor",
+    "calculate_pat_archs",
+    "get_arch_pats_values",
+    "identify_outliers"
 ]

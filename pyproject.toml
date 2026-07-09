@@ -35,6 +35,7 @@ dependencies = [
   "seaborn",
   "squidpy",
   "statsmodels",
+  "partipy", # required for archetypal analysis
 ]
 
 optional-dependencies.extra = [

@@ -244,3 +244,46 @@ def split_by_view(arch_gex: pd.DataFrame) -> dict[str, pd.DataFrame]:
     return {
         view: arch_gex.xs(view, axis=1, level="view") for view in arch_gex.columns.get_level_values("view").unique()
     }
+
+def identify_outliers(amodel, threshold=10):
+    """
+    Identify outlier samples for each factor in an AnnData object based on standard deviation thresholding.
+
+    Parameters
+    ----------
+    amodel : anndata.AnnData
+        MINA model output AnnData object containing factor scores in `amodel.X`.
+    threshold : float, optional
+        Number of standard deviations from the mean to consider a sample an outlier. Default is 10.
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Dictionary providing outliers for each factor. Keys are factor names, and values are lists of sample IDs that are considered outliers for that factor.
+    """
+    outlier_dict = {}
+    X = amodel.X
+
+    for j, factor in enumerate(amodel.var_names):
+        # Get column j of X
+        col = X[:, j]
+        # Make sure it's a 1D dense array
+        if sp.issparse(col):
+            col = col.toarray().ravel()
+        else:
+            col = np.asarray(col).ravel()
+
+        mean = col.mean()
+        sd = col.std()
+
+        if sd == 0:
+            # No variation → no outliers
+            outlier_dict[factor] = []
+            continue
+
+        mask = (col > mean + threshold * sd) | (col < mean - threshold * sd)
+
+        # obs_names of outlier samples
+        outlier_dict[factor] = amodel.obs_names[mask].tolist()
+
+    return outlier_dict

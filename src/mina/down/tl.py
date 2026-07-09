@@ -16,6 +16,7 @@ import statsmodels.formula.api as smf
 from anndata import AnnData
 from scipy.stats import f_oneway, pearsonr
 from statsmodels.stats.multitest import multipletests
+import partipy as pt
 
 from mina.down.utils import split_by_view
 
@@ -925,3 +926,97 @@ def lr_usage(
     ]
 
     return df[column_order].reset_index(drop=True)
+
+# Archetypal analysis tools
+
+def calculate_pat_archs(amodel,
+                        sel_factors, # or "all"# This is relative to the factors selected in sel_factors, so if you select "all" it will be relative to all factors
+                        plotting_factors,
+                        min_archs = 2,
+                        max_archs = 9,
+                        n_bootstraps = 50):
+    """
+    Calculate archetypes for a given set of factors in an AnnData model using ParTIpy.
+
+    This function wraps all functions needed to evaluate and calculate archetypes.
+
+    Parameters
+    ----------
+    amodel : anndata.AnnData
+        MINA model output AnnData object containing factor scores in `amodel.X`.
+
+    sel_factors : list[str] or "all"
+        List of factor names to use for archetype calculation. If "all", all factors in `amodel.var_names` are used.
+
+    plotting_factors : list[str]
+        List of length 2 with factor names to use for plotting archetypes. Must be a subset of `sel_factors`.
+
+    min_archs : int
+        Minimum number of archetypes to evaluate. Default is 2.
+
+    max_archs : int
+        Maximum number of archetypes to evaluate. Default is 9.
+
+    n_bootstraps : int
+        Number of bootstrap samples to use for variance estimation. Default is 50.
+
+    Returns
+    -------
+    amodel : anndata.AnnData
+        Updated AnnData object with archetype results stored in `amodel.obsm` and `amodel.uns`.
+    sel_factors_ix : list[int]
+        List of integer indices corresponding to the selected factors in `sel_factors`.
+    plotting_factors_ix : list[int]
+        List of integer indices corresponding to the plotting factors in `plotting_factors`.
+    """
+    # First transform the params into numeric indexes
+    sel_factors_ix = [amodel.var_names.get_loc(factor) for factor in sel_factors]
+
+    # Add the factors to obsm for partipy
+    if sel_factors == "all":
+        plotting_factors_ix = [amodel.var_names.get_loc(factor) for factor in plotting_factors]
+        amodel.obsm["Fs"] = amodel.X.copy() # Here's where you decide what to use for archetypes
+    else:
+        # Get the index of the factors to be plotted relative to sel_factors list
+        plotting_factors_ix = [sel_factors.index(factor) for factor in plotting_factors]
+        amodel.obsm["Fs"] = amodel.X[:,sel_factors_ix].copy()
+
+    # Then we do Partipy's evaluations
+    pt.set_obsm(adata=amodel, obsm_key="Fs", n_dimensions= amodel.obsm["Fs"].shape[1])
+    pt.compute_selection_metrics(adata=amodel, n_archetypes_list=range(min_archs, max_archs))
+    pt.compute_bootstrap_variance(adata=amodel, n_bootstrap=n_bootstraps, n_archetypes_list=range(min_archs, max_archs))
+
+    return amodel, sel_factors_ix, plotting_factors_ix
+
+
+def get_arch_pats_values(amodel,
+                         n_archetypes,
+                         sel_factors_ix):
+    """
+    Calculate the features that define each archetype for each view used in the model. This is calculated by multiplying the archetype locations in latent space by the loadings for the selected factors.
+
+    Parameters
+    ----------
+    amodel : anndata.AnnData
+        MINA model output AnnData object containing factor scores in `amodel.X`.
+
+    n_archetypes : float
+        Number of archetypes to use for the calculation. This should be the number of archetypes that you have selected based on the evaluation metrics.
+
+    sel_factors_ix : list[str]
+        List of integer indices corresponding to the selected factors in `sel_factors`. Output from `calculate_pat_archs` function.
+
+    Returns
+    -------
+    arch_gex : pandas.DataFrame
+        DataFrame containing the reconstructed archetype feature values for each archetype. Rows are archetypes, columns are genes, and values are the reconstructed expression levels.
+    """
+    # Columns are latent variables, rows are archetypes,
+    # values are the location of each archetype in the latent space
+    arch_location = pt.get_aa_result(amodel, n_archetypes =  n_archetypes, delta = 0.0)["Z"].copy()
+    # Reconstruct archetypes in gene space
+    arch_gex = arch_location @ amodel.varm["gene_loadings"][sel_factors_ix,:].copy()  # (n_archetypes, n_genes)
+    # Wrap as DataFrame for readability
+    arch_gex = pd.DataFrame(arch_gex, columns=amodel.uns['gene_loadings_columns'], index = ["Arch" + str(i) for i in range(0, arch_location.shape[0])])
+
+    return arch_gex
