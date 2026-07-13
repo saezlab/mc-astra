@@ -884,6 +884,7 @@ def lr_usage(
 
     # 7. remove zero loadings before sign comparison
     df = df[(df["source_loading"] != 0) & (df["target_loading"] != 0)].copy()
+    df.dropna(subset=["source_loading", "target_loading"], inplace=True)
 
     # 8. keep coherent signs
     df["source_sign"] = np.sign(df["source_loading"]).astype(int)
