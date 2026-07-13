@@ -24,6 +24,7 @@ from .utils import (
     make_membership_matrix,
     merge_adata_views,
     save_raw_counts,
+    get_contaminant_genes,
 )
 
 __all__ = [
@@ -46,4 +47,5 @@ __all__ = [
     "make_membership_matrix",
     "get_nhood_enrichment_feats",
     "get_cell_props",
+    "get_contaminant_genes",
 ]

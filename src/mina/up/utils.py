@@ -3,6 +3,7 @@
 import anndata as ad
 import decoupler as dc
 import pandas as pd
+import scanpy as sc
 from anndata import AnnData
 from skbio.stats.composition import clr, multi_replace
 
@@ -496,3 +497,98 @@ def get_cell_props(
     clr_props_adata.obs = clr_props_adata.obs.join(metadata, how="left")
     clr_props_adata.obs.index.name = None
     return clr_props_adata
+
+def get_contaminant_genes(
+    pdata,
+    view_group="celltype",
+    min_count=10,
+    min_total_count=20,
+    large_n=10,
+    min_prop=0.4,
+    lfc_threshold=3,
+    p_threshold=0.001,
+):
+    """
+    Identify contaminant marker genes for each cell type.
+    This function performs differential expression analysis to find genes that are significantly upregulated in one cell type compared to all others,
+    and then identifies genes that are markers for other cell types as potential contaminants.
+    Simple Wilcoxon tests are performed after cell-type specific filterings and normalization of data.
+
+    Parameters
+    ----------
+    pdata : AnnData
+        The AnnData object containing the pseudobulk expression data and cell type annotations.
+    view_group : str
+        The column in `pdata.obs` that contains the cell type annotations. Default is "celltype".
+    min_count : int
+        A minimum read count in a minimum number of samples.
+    min_total_count : int
+        A minimum total read count across all samples.
+    large_n : int
+        Number of samples per group that is considered to be “large”.
+    min_prop : float
+        Minimum proportion of samples in the smallest group that express the gene.
+    lfc_threshold : float
+        The log fold change threshold for considering a gene as a marker. Default is 3.
+    p_threshold : float
+        The adjusted p-value threshold for considering a gene as a marker. Default is 0.001.
+
+    Returns
+    -------
+    contaminants_dict : dict
+        A dictionary where keys are cell types and values are lists of genes that are considered contaminants for that cell type.
+    """
+    marker_genes = {}
+
+    for ref_ct in pdata.obs[view_group].unique():
+        pdata_test = pdata.copy()
+
+        pdata_test.obs["test_column"] = pdata_test.obs[view_group].apply(
+            lambda x: "reference" if x == ref_ct else "rest"
+        )
+
+        dc.pp.filter_by_expr(
+            adata=pdata_test,
+            group="test_column",
+            min_count=min_count,
+            min_total_count=min_total_count,
+            large_n=large_n,
+            min_prop=min_prop,
+        )
+
+        sc.pp.normalize_total(pdata_test, target_sum=1e4)
+        sc.pp.log1p(pdata_test)
+
+        sc.tl.rank_genes_groups(
+            pdata_test,
+            groupby="test_column",
+            method="wilcoxon",
+        )
+
+        results = sc.get.rank_genes_groups_df(
+            pdata_test,
+            group="reference",
+        )
+
+        results = results[
+            (results["pvals_adj"] < p_threshold)
+            & (results["logfoldchanges"] > lfc_threshold)
+        ]
+
+        marker_genes[ref_ct] = results["names"].tolist()
+
+    contaminants_dict = {}
+
+    for ct in marker_genes:
+        rest_markers = {
+            gene
+            for cell_type, genes in marker_genes.items()
+            if cell_type != ct
+            for gene in genes
+        }
+
+        contaminants_dict[ct] = list(
+            rest_markers - set(marker_genes[ct])
+        )
+
+    return contaminants_dict
