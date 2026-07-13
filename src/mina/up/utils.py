@@ -390,13 +390,19 @@ def get_nhood_enrichment_feats(
             categories=present_celltypes,
         )
 
-        sq.gr.spatial_neighbors(
+        sq.gr.spatial_neighbors_delaunay(
             ad,
             spatial_key=spatial_key,
-            coord_type=coord_type,
-            delaunay=True,
             key_added="spatial",
         )
+
+        #sq.gr.spatial_neighbors(
+        #    ad,
+        #    spatial_key=spatial_key,
+        #    coord_type=coord_type,
+        #    delaunay=True,
+        #    key_added="spatial",
+        #)
 
         result = sq.gr.nhood_enrichment(
             ad,
