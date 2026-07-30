@@ -6,11 +6,10 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib.patches import Rectangle
-
-from scipy.cluster.hierarchy import linkage, leaves_list
-from scipy.spatial.distance import pdist
 from matplotlib.colors import TwoSlopeNorm
+from matplotlib.patches import Rectangle
+from scipy.cluster.hierarchy import leaves_list, linkage
+from scipy.spatial.distance import pdist
 
 # Plotting
 
@@ -381,6 +380,8 @@ def plot_mcell_funcomics(
     figsize: tuple = (14, 5),
     ytick_rotation: int = 0,
     use_var: bool = False,
+    share_color_scale: bool = True,
+    center: float | None = 0.0,
 ):
     """
     Plot grouped heatmaps per view using a selected result matrix.
@@ -408,6 +409,10 @@ def plot_mcell_funcomics(
         Rotation angle for y-axis tick labels.
     use_var : bool
         If True, rank features by variance instead of mean absolute value.
+    share_color_scale : bool
+        Whether all heatmaps use a shared color scale.
+    center : float or None
+        Center value for diverging color scaling. If None, no center is used.
 
     Returns
     -------
@@ -416,11 +421,12 @@ def plot_mcell_funcomics(
     """
     views = []
     filtered_data = {}
+    significance_masks = {}
 
     # Step 1: collect views that pass p-value filtering
     for view, result in result_dict.items():
-        data = result[result_key]  # samples × features
-        pvals = result[pval_key]  # samples × features
+        data = result[result_key]  # factors × features
+        pvals = result[pval_key]  # factors × features
 
         sig_mask = (pvals < p_threshold).any(axis=0)
         sig_features = sig_mask[sig_mask].index
@@ -436,6 +442,7 @@ def plot_mcell_funcomics(
 
         top_features = feature_score.sort_values(ascending=False).head(top_n).index
         filtered_data[view] = data[top_features]
+        significance_masks[view] = pvals[top_features] < p_threshold
         views.append(view)
 
     n_views = len(views)
@@ -443,44 +450,75 @@ def plot_mcell_funcomics(
         print("No views with significant features found.")
         return
 
-    # Compute global color scale
-    all_vals = pd.concat(filtered_data.values(), axis=1)
-    vmin, vmax = all_vals.min().min(), all_vals.max().max()
+    # Global color scale if requested
+    if share_color_scale:
+        all_vals = pd.concat(filtered_data.values(), axis=1)
+        values = all_vals.to_numpy().ravel()
+        values = values[np.isfinite(values)]
+
+        if center is None:
+            vmin, vmax = np.nanmin(values), np.nanmax(values)
+        else:
+            max_abs = np.nanmax(np.abs(values - center))
+            vmin, vmax = center - max_abs, center + max_abs
+    else:
+        vmin, vmax = None, None
 
     fig = plt.figure(figsize=figsize)
     gs = gridspec.GridSpec(1, n_views, wspace=0.4)
-    heatmaps = []
 
     for i, view in enumerate(views):
         plot_data = filtered_data[view]
 
+        # Per-view centered color scale if not sharing scale
+        if not share_color_scale:
+            values = plot_data.to_numpy().ravel()
+            values = values[np.isfinite(values)]
+
+            if center is None:
+                view_vmin, view_vmax = np.nanmin(values), np.nanmax(values)
+            else:
+                max_abs = np.nanmax(np.abs(values - center))
+                view_vmin, view_vmax = center - max_abs, center + max_abs
+        else:
+            view_vmin, view_vmax = vmin, vmax
+
         ax = fig.add_subplot(gs[i])
-        heatmap = sns.heatmap(
+        sns.heatmap(
             plot_data,
             cmap=cmap,
-            vmin=vmin,
-            vmax=vmax,
+            vmin=view_vmin,
+            vmax=view_vmax,
+            center=center,
             cbar=False,  # suppress individual colorbars
             ax=ax,
             xticklabels=True,
             yticklabels=(i == 0),
         )
+
+        sig_mask = significance_masks[view].to_numpy()
+        for row_idx, col_idx in np.argwhere(sig_mask):
+            ax.text(col_idx + 0.5, row_idx + 0.5, "★", ha="center", va="center")
+
         ax.set_title(view, fontsize=10)
         ax.tick_params(axis="x", labelsize=7, rotation=90)
         ax.tick_params(axis="y", labelsize=7, rotation=ytick_rotation)
 
         if i > 0:
             ax.set_ylabel("")
-        heatmaps.append(heatmap)
 
-    # Add shared colorbar to the right
-    cbar_ax = fig.add_axes([0.92, 0.3, 0.02, 0.5])  # [left, bottom, width, height]
-    norm = plt.Normalize(vmin=vmin, vmax=vmax)
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])  # only needed for older versions of matplotlib
-    fig.colorbar(sm, cax=cbar_ax, label=result_key)
+    # Shared colorbar
+    if share_color_scale:
+        plt.tight_layout(rect=[0, 0, 0.9, 1])
 
-    plt.tight_layout(rect=[0, 0, 0.9, 1])  # leave space for cbar
+        cbar_ax = fig.add_axes([0.92, 0.3, 0.02, 0.5])
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+        sm.set_array([])
+        fig.colorbar(sm, cax=cbar_ax, label=result_key)
+    else:
+        plt.tight_layout()
+
     plt.show()
 
 
@@ -745,7 +783,6 @@ def plot_interaction_tileplot(
     value_decimals
         Number of decimals shown inside tiles.
     """
-
     required = {row_col, col_col, value_col}
     missing = required - set(df.columns)
     if missing:
@@ -861,11 +898,11 @@ def plot_interaction_tileplot(
 
     # Adaptive text color based on tile luminance
     if show_values:
-        default_text_kwargs = dict(
-            ha="center",
-            va="center",
-            fontsize=9,
-        )
+        default_text_kwargs = {
+            "ha": "center",
+            "va": "center",
+            "fontsize": 9,
+        }
         if text_kwargs is not None:
             default_text_kwargs.update(text_kwargs)
 

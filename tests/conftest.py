@@ -1,6 +1,9 @@
 import anndata as ad
+import matplotlib
 import numpy as np
 import pytest
+
+matplotlib.use("Agg", force=True)
 
 
 @pytest.fixture
