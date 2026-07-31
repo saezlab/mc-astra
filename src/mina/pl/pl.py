@@ -1,15 +1,20 @@
 """Plotting functions for MINA upstream and downstream summaries."""
 
+from collections.abc import Mapping, Sequence
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib.colors import TwoSlopeNorm
-from matplotlib.patches import Rectangle
+from matplotlib.axes import Axes
+from matplotlib.colors import TwoSlopeNorm, to_hex
+from matplotlib.figure import Figure
+from matplotlib.patches import Rectangle, Patch
+from pycirclize import Circos
 from scipy.cluster.hierarchy import leaves_list, linkage
 from scipy.spatial.distance import pdist
+
 
 # Plotting
 
@@ -1214,3 +1219,248 @@ def plot_comm_overview(
     plt.tight_layout()
 
     return fig, ax
+
+
+def plot_lr_circos(
+    plot_df: pd.DataFrame,
+    sector_order: Sequence[str] | None = None,
+    sector_colors: Mapping[str, str] | None = None,
+    cmap: str = "tab10",
+    sector_gap: float = 4,
+    sector_r_lim: tuple[float, float] = (96, 100),
+    gene_label_size: float = 7,
+    sector_label_size: float = 12,  # kept for compatibility, not used
+    link_color: str = "black",
+    link_width: float = 0.8,
+    link_alpha: float = 0.7,
+    arrow_height: float = 3,
+    arrow_width: float = 2,
+    figsize: tuple[float, float] = (10, 10),
+    start: float = 0,
+    end: float = 360,
+    dpi: int = 100,
+    ax: Axes | None = None,
+    show_sector_legend: bool = True,
+    legend_kwargs: dict | None = None,
+) -> tuple[Figure, Axes]:
+    """
+    Plot ligand-receptor interactions as a directed Circos plot.
+
+    Each source or target cell type is represented by one sector. Ligands and
+    receptors are placed as labels within their corresponding cell-type sector.
+    Each row creates a directed connection:
+
+        source ligand -> target receptor
+    """
+    required_cols = {
+        "source",
+        "target",
+        "ligand",
+        "receptor",
+    }
+
+    missing_cols = required_cols - set(plot_df.columns)
+
+    if missing_cols:
+        raise ValueError(
+            f"`plot_df` is missing required columns: {sorted(missing_cols)}"
+        )
+
+    if plot_df.empty:
+        raise ValueError("`plot_df` is empty. Nothing to plot.")
+
+    if ax is not None and getattr(ax, "name", None) != "polar":
+        raise ValueError(
+            "`ax` must be a polar Matplotlib axis. Create it with "
+            "`subplot_kw={'projection': 'polar'}`."
+        )
+
+    df = plot_df[
+        ["source", "target", "ligand", "receptor"]
+    ].copy()
+
+    df = df.dropna(
+        subset=["source", "target", "ligand", "receptor"]
+    )
+
+    if df.empty:
+        raise ValueError(
+            "No complete ligand-receptor interactions remain after "
+            "removing missing values."
+        )
+
+    for column in ["source", "target", "ligand", "receptor"]:
+        df[column] = df[column].astype(str)
+
+    df = df.drop_duplicates().reset_index(drop=True)
+
+    observed_sectors = pd.unique(
+        pd.concat(
+            [df["source"], df["target"]],
+            ignore_index=True,
+        )
+    ).tolist()
+
+    if sector_order is None:
+        resolved_sector_order = observed_sectors
+    else:
+        if isinstance(sector_order, str):
+            raise TypeError(
+                "`sector_order` must be a sequence of cell-type names, "
+                "not a single string."
+            )
+
+        requested_order = [str(value) for value in sector_order]
+
+        unknown_sectors = sorted(
+            set(requested_order) - set(observed_sectors)
+        )
+
+        if unknown_sectors:
+            raise ValueError(
+                "`sector_order` contains cell types absent from "
+                f"`plot_df`: {unknown_sectors}"
+            )
+
+        resolved_sector_order = requested_order + [
+            sector
+            for sector in observed_sectors
+            if sector not in requested_order
+        ]
+
+    sector_genes = {
+        sector: []
+        for sector in resolved_sector_order
+    }
+
+    for row in df.itertuples(index=False):
+        if row.ligand not in sector_genes[row.source]:
+            sector_genes[row.source].append(row.ligand)
+
+        if row.receptor not in sector_genes[row.target]:
+            sector_genes[row.target].append(row.receptor)
+
+    sectors = {
+        sector: len(sector_genes[sector])
+        for sector in resolved_sector_order
+    }
+
+    if sector_gap * len(sectors) >= end - start:
+        raise ValueError(
+            "`sector_gap` is too large for the number of sectors."
+        )
+
+    cmap_obj = plt.get_cmap(cmap)
+
+    generated_colors = {
+        sector: to_hex(
+            cmap_obj(index / max(len(resolved_sector_order) - 1, 1))
+        )
+        for index, sector in enumerate(resolved_sector_order)
+    }
+
+    if sector_colors is not None:
+        generated_colors.update(
+            {
+                str(sector): color
+                for sector, color in sector_colors.items()
+            }
+        )
+
+    circos = Circos(
+        sectors=sectors,
+        start=start,
+        end=end,
+        space=sector_gap,
+    )
+
+    gene_positions: dict[tuple[str, str], float] = {}
+
+    for sector in circos.sectors:
+        genes = sector_genes[sector.name]
+        color = generated_colors[sector.name]
+
+        track = sector.add_track(
+            sector_r_lim,
+            r_pad_ratio=0,
+        )
+
+        track.axis(
+            fc=color,
+            ec="none",
+        )
+
+        positions = np.arange(len(genes), dtype=float) + 0.5
+
+        track.xticks(
+            positions,
+            labels=genes,
+            outer=True,
+            tick_length=2.5,
+            label_margin=1.5,
+            label_size=gene_label_size,
+            label_orientation="vertical",
+            line_kws={
+                "ec": color,
+                "lw": 0.8,
+            },
+            text_kws={
+                "color": "black",
+            },
+        )
+
+        for gene, position in zip(genes, positions):
+            gene_positions[(sector.name, gene)] = float(position)
+
+    for row in df.itertuples(index=False):
+        ligand_position = gene_positions[
+            (row.source, row.ligand)
+        ]
+
+        receptor_position = gene_positions[
+            (row.target, row.receptor)
+        ]
+
+        circos.link_line(
+            (row.source, ligand_position),
+            (row.target, receptor_position),
+            r1=sector_r_lim[0] - 1,
+            r2=sector_r_lim[0] - 1,
+            direction=1,
+            color=link_color,
+            lw=link_width,
+            alpha=link_alpha,
+            arrow_height=arrow_height,
+            arrow_width=arrow_width,
+        )
+
+    fig = circos.plotfig(
+        figsize=figsize,
+        dpi=dpi,
+        ax=ax,
+    )
+
+    if show_sector_legend:
+        legend_handles = [
+            Patch(
+                facecolor=generated_colors[sector],
+                edgecolor="none",
+                label=sector,
+            )
+            for sector in resolved_sector_order
+        ]
+
+        if legend_kwargs is None:
+            legend_kwargs = {
+                "loc": "center left",
+                "bbox_to_anchor": (1.02, 0.5),
+                "frameon": False,
+                "title": "Cell type",
+            }
+
+        circos.ax.legend(
+            handles=legend_handles,
+            **legend_kwargs,
+        )
+
+    return fig, circos.ax

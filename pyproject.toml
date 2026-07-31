@@ -9,12 +9,11 @@ description = "Multicellular INtegration Analysis"
 readme = "README.md"
 license = { file = "LICENSE" }
 maintainers = [
-  { name = "Klaus Kruger", email = "klaus.kruger@stud.uni-heidelberg.de" },
   { name = "Ricardo Omar Ramirez Flores", email = "flores@ebi.ac.uk" },
 ]
 authors = [
-  { name = "Klaus Kruger" },
   { name = "Ricardo Omar Ramirez Flores", email = "flores@ebi.ac.uk" },
+  { name = "Klaus Kruger" },
 ]
 requires-python = ">=3.12,<3.14"
 classifiers = [
@@ -36,6 +35,8 @@ dependencies = [
   "squidpy",
   "statsmodels",
   "partipy", # required for archetypal analysis
+  "matplotlib>=3.10,<3.11",
+  "pycirclize==1.10.1"
 ]
 
 optional-dependencies.extra = [
