@@ -1229,7 +1229,6 @@ def plot_lr_circos(
     sector_gap: float = 4,
     sector_r_lim: tuple[float, float] = (96, 100),
     gene_label_size: float = 7,
-    sector_label_size: float = 12,  # kept for compatibility, not used
     link_color: str = "black",
     link_width: float = 0.8,
     link_alpha: float = 0.7,

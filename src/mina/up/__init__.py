@@ -15,6 +15,7 @@ from .pp import (
     extract_metadata_from_obs,
     norm_log,
     split_anndata_by_celltype,
+    norm_zscore,
 )
 from .utils import (
     append_view_to_var,
@@ -48,4 +49,5 @@ __all__ = [
     "get_nhood_enrichment_feats",
     "get_cell_props",
     "get_contaminant_genes",
+    "norm_zscore",
 ]

@@ -1,8 +1,7 @@
 """Preprocessing utilities for MINA upstream data objects."""
-
-import re
-
+import numpy as np
 import pandas as pd
+import re
 import scanpy as sc
 
 # Upstream processing functions
@@ -147,3 +146,65 @@ def norm_log(anndata_dict, target_sum=1e6, exclude_highly_expressed=False, max_v
 
     else:
         print(f"Normalization and log-transformation complete for all AnnData objects with target_sum = {target_sum}.")
+
+def norm_zscore(anndata_dict, center=True):
+    """
+    Z-score transform each feature across observations in AnnData objects.
+
+    For each feature, the transformation is:
+
+        z = (x - mean) / standard_deviation
+
+    Parameters
+    ----------
+    anndata_dict : dict[str, anndata.AnnData]
+        Dictionary of AnnData objects. Each object is modified in place.
+    max_value : float or None
+        If provided, clip transformed values to
+        ``[-max_value, max_value]``.
+    center : bool
+        Whether to subtract the feature mean before scaling. If False,
+        features are divided by their standard deviation without centering.
+
+    Returns
+    -------
+    None
+        The input AnnData objects are modified in place.
+
+    Notes
+    -----
+    Sparse matrices are converted to dense arrays because centering generally
+    destroys sparsity.
+    """
+    for _key, adata in anndata_dict.items():
+        # Convert the expression matrix to a dense floating-point array
+        X = (
+            adata.X.toarray()
+            if hasattr(adata.X, "toarray")
+            else np.asarray(adata.X, dtype=float)
+        )
+
+        X = X.astype(float, copy=False)
+
+        # Calculate feature-wise means and standard deviations
+        means = np.nanmean(X, axis=0, keepdims=True)
+        stds = np.nanstd(X, axis=0, keepdims=True)
+
+        # Avoid division by zero for constant features
+        stds = np.where((stds == 0) | ~np.isfinite(stds), 1.0, stds)
+
+        # Apply the transformation
+        if center:
+            X = (X - means) / stds
+        else:
+            X = X / stds
+
+        adata.X = X
+
+    if center:
+        print("Feature-wise z-score transformation complete for all AnnData objects.")
+    else:
+        print(
+            "Feature-wise standard-deviation scaling complete for all "
+            "AnnData objects without centering."
+        )
