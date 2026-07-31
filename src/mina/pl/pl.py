@@ -10,11 +10,11 @@ import seaborn as sns
 from matplotlib.axes import Axes
 from matplotlib.colors import TwoSlopeNorm, to_hex
 from matplotlib.figure import Figure
+from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, Patch
 from pycirclize import Circos
 from scipy.cluster.hierarchy import leaves_list, linkage
 from scipy.spatial.distance import pdist
-
 
 # Plotting
 
@@ -1463,3 +1463,516 @@ def plot_lr_circos(
         )
 
     return fig, circos.ax
+
+def plot_feats_through_cov(
+    adata,
+    features,
+    view,
+    covariate="time",
+    group_by=None,
+    ci_opacity=0.3,
+    line_size=0.8,
+    dot_size=20,
+    figsize=None,
+    line_color="#08306b",
+    point_color=None,
+    ribbon_color="#d3d3d3",
+    group_colors=None,
+    covariate_order=None,
+    sharey=True,
+):
+    """
+    Plot selected features against a one-dimensional covariate.
+
+    For each feature, the function plots the mean values connected by a line,
+    together with mean points and an approximate 95% confidence interval:
+
+        mean ± 1.96 * std / sqrt(n)
+
+    Parameters
+    ----------
+    adata : anndata.AnnData
+        AnnData object containing:
+
+        - ``adata.obsm[view]``: sample-by-feature matrix
+        - ``adata.uns[f"{view}_columns"]``: feature names
+        - ``adata.obs[covariate]``: covariate values
+
+    features : sequence of str
+        Features to plot. Panel order follows the order provided here.
+
+    view : str
+        Key in ``adata.obsm`` containing the sample-by-feature matrix.
+
+    covariate : str, default="time"
+        Column in ``adata.obs`` used for the x-axis.
+
+    group_by : str or None, default=None
+        Optional column in ``adata.obs`` defining separate trajectories.
+
+    ci_opacity : float, default=0.3
+        Confidence interval opacity.
+
+    line_size : float, default=0.8
+        Width of the connecting lines.
+
+    dot_size : float, default=20
+        Scatter-point area in points squared.
+
+    figsize : tuple or None
+        Figure size. Defaults to approximately four inches per feature.
+
+    line_color : str, default="#08306b"
+        Fixed line colour when ``group_by=None``.
+
+    point_color : str or None, default=None
+        Fixed point colour when ``group_by=None``. When None, uses
+        ``line_color``.
+
+    ribbon_color : str, default="#d3d3d3"
+        Confidence interval colour when ``group_by=None``.
+
+    group_colors : sequence, mapping, or None
+        Colours used when ``group_by`` is provided.
+
+        - If a mapping, keys should be group labels.
+        - If a sequence, colours are assigned in group order.
+        - If None, colours are taken from Matplotlib's ``tab10`` colormap.
+
+    covariate_order : sequence or None
+        Explicit ordering for a categorical covariate.
+
+    sharey : bool, default=True
+        Whether feature panels share the same y-axis scale.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        Matplotlib figure.
+
+    axes : numpy.ndarray
+        One-dimensional array of Matplotlib axes.
+
+    summary : pandas.DataFrame
+        Summary statistics used for plotting.
+    """
+    features = list(features)
+
+    if not features:
+        raise ValueError("features must contain at least one feature.")
+
+    if view not in adata.obsm:
+        raise KeyError(f"{view!r} was not found in adata.obsm.")
+
+    if covariate not in adata.obs.columns:
+        raise KeyError(f"{covariate!r} was not found in adata.obs.")
+
+    if group_by is not None and group_by not in adata.obs.columns:
+        raise KeyError(f"{group_by!r} was not found in adata.obs.")
+
+    columns_key = f"{view}_columns"
+
+    if columns_key not in adata.uns:
+        raise KeyError(f"{columns_key!r} was not found in adata.uns.")
+
+    if point_color is None:
+        point_color = line_color
+
+    # ------------------------------------------------------------------
+    # Build the sample-by-feature dataframe
+    # ------------------------------------------------------------------
+    view_data = adata.obsm[view]
+    view_features = list(adata.uns[columns_key])
+
+    if isinstance(view_data, pd.DataFrame):
+        view_df = view_data.copy()
+        view_df.index = adata.obs_names
+
+        if view_df.shape[1] != len(view_features):
+            raise ValueError(
+                f"adata.obsm[{view!r}] contains {view_df.shape[1]} columns, "
+                f"but adata.uns[{columns_key!r}] contains "
+                f"{len(view_features)} feature names."
+            )
+
+        view_df.columns = view_features
+
+    else:
+        if hasattr(view_data, "toarray"):
+            view_data = view_data.toarray()
+
+        view_array = np.asarray(view_data)
+
+        if view_array.ndim != 2:
+            raise ValueError(
+                f"adata.obsm[{view!r}] must be a two-dimensional matrix."
+            )
+
+        if view_array.shape[0] != adata.n_obs:
+            raise ValueError(
+                f"adata.obsm[{view!r}] contains {view_array.shape[0]} rows, "
+                f"but adata contains {adata.n_obs} observations."
+            )
+
+        if view_array.shape[1] != len(view_features):
+            raise ValueError(
+                f"adata.obsm[{view!r}] contains {view_array.shape[1]} columns, "
+                f"but adata.uns[{columns_key!r}] contains "
+                f"{len(view_features)} feature names."
+            )
+
+        view_df = pd.DataFrame(
+            view_array,
+            columns=view_features,
+            index=adata.obs_names,
+        )
+
+    missing_features = [
+        feature for feature in features
+        if feature not in view_df.columns
+    ]
+
+    if missing_features:
+        raise KeyError(
+            f"The following features were not found in view {view!r}: "
+            f"{missing_features}"
+        )
+
+    # ------------------------------------------------------------------
+    # Convert to long format and add observation metadata
+    # ------------------------------------------------------------------
+    plot_df = (
+        view_df.loc[:, features]
+        .rename_axis("sample")
+        .reset_index()
+        .melt(
+            id_vars="sample",
+            var_name="feature",
+            value_name="feature_value",
+        )
+    )
+
+    metadata_columns = [covariate]
+
+    if group_by is not None:
+        metadata_columns.append(group_by)
+
+    metadata_df = adata.obs.loc[:, metadata_columns].copy()
+    metadata_df.index = metadata_df.index.astype(str)
+
+    plot_df["sample"] = plot_df["sample"].astype(str)
+
+    plot_df = plot_df.merge(
+        metadata_df,
+        left_on="sample",
+        right_index=True,
+        how="left",
+        validate="many_to_one",
+    )
+
+    plot_df["feature"] = pd.Categorical(
+        plot_df["feature"],
+        categories=features,
+        ordered=True,
+    )
+
+    # ------------------------------------------------------------------
+    # Calculate mean and approximate 95% confidence interval
+    # ------------------------------------------------------------------
+    grouping_columns = [covariate, "feature"]
+
+    if group_by is not None:
+        grouping_columns.append(group_by)
+
+    summary = (
+        plot_df
+        .groupby(
+            grouping_columns,
+            observed=True,
+            sort=False,
+            dropna=False,
+        )
+        .agg(
+            mean=("feature_value", "mean"),
+            std=("feature_value", "std"),
+            count=("feature_value", "count"),
+        )
+        .reset_index()
+    )
+
+    # Standard deviation is undefined for groups containing one observation.
+    summary["std"] = summary["std"].fillna(0.0)
+
+    summary["ci95"] = (
+        1.96
+        * summary["std"]
+        / np.sqrt(summary["count"])
+    )
+
+    required_columns = [covariate, "mean"]
+
+    if group_by is not None:
+        required_columns.append(group_by)
+
+    summary = summary.dropna(subset=required_columns).copy()
+
+    if summary.empty:
+        raise ValueError(
+            "No valid observations remained after grouping and removing "
+            "missing values."
+        )
+
+    # ------------------------------------------------------------------
+    # Convert the covariate into numeric plotting positions
+    # ------------------------------------------------------------------
+    covariate_values = plot_df[covariate]
+
+    if pd.api.types.is_numeric_dtype(covariate_values):
+        summary["_x"] = pd.to_numeric(
+            summary[covariate],
+            errors="coerce",
+        )
+
+        summary = summary.dropna(subset=["_x"]).copy()
+
+        categorical_x = False
+        category_labels = None
+
+    else:
+        categorical_x = True
+
+        if covariate_order is not None:
+            category_labels = list(covariate_order)
+
+        elif isinstance(covariate_values.dtype, pd.CategoricalDtype):
+            category_labels = list(
+                covariate_values.cat.categories
+            )
+
+        else:
+            category_labels = list(
+                pd.unique(covariate_values.dropna())
+            )
+
+        category_positions = {
+            category: position
+            for position, category in enumerate(category_labels)
+        }
+
+        summary["_x"] = summary[covariate].map(category_positions)
+
+        unknown_categories = summary.loc[
+            summary["_x"].isna(),
+            covariate,
+        ].unique()
+
+        if len(unknown_categories) > 0:
+            raise ValueError(
+                "The following covariate values were not included in "
+                f"covariate_order: {list(unknown_categories)}"
+            )
+
+        summary["_x"] = summary["_x"].astype(float)
+
+    # ------------------------------------------------------------------
+    # Create figure
+    # ------------------------------------------------------------------
+    n_features = len(features)
+
+    if figsize is None:
+        figsize = (4 * n_features, 4)
+
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=n_features,
+        figsize=figsize,
+        sharex=True,
+        sharey=sharey,
+        squeeze=False,
+    )
+
+    axes = axes.ravel()
+
+    # ------------------------------------------------------------------
+    # Plot a single trajectory per feature
+    # ------------------------------------------------------------------
+    if group_by is None:
+        for ax, feature in zip(axes, features):
+            feature_summary = (
+                summary.loc[summary["feature"] == feature]
+                .sort_values("_x")
+            )
+
+            x = feature_summary["_x"].to_numpy(dtype=float)
+            mean = feature_summary["mean"].to_numpy(dtype=float)
+            ci = feature_summary["ci95"].to_numpy(dtype=float)
+
+            ax.fill_between(
+                x,
+                mean - ci,
+                mean + ci,
+                color=ribbon_color,
+                alpha=ci_opacity,
+                linewidth=0,
+                zorder=1,
+            )
+
+            ax.plot(
+                x,
+                mean,
+                color=line_color,
+                linewidth=line_size,
+                zorder=2,
+            )
+
+            ax.scatter(
+                x,
+                mean,
+                color=point_color,
+                s=dot_size,
+                zorder=3,
+            )
+
+            ax.set_title(
+                str(feature),
+                fontweight="bold",
+                fontsize=10,
+            )
+
+    # ------------------------------------------------------------------
+    # Plot separate trajectories for each group
+    # ------------------------------------------------------------------
+    else:
+        groups = list(pd.unique(summary[group_by]))
+
+        if isinstance(group_colors, dict):
+            missing_group_colors = [
+                group for group in groups
+                if group not in group_colors
+            ]
+
+            if missing_group_colors:
+                raise KeyError(
+                    "No colour was provided for the following groups: "
+                    f"{missing_group_colors}"
+                )
+
+            group_color_map = {
+                group: group_colors[group]
+                for group in groups
+            }
+
+        else:
+            if group_colors is None:
+                cmap = plt.get_cmap("tab10")
+                colors = [
+                    cmap(index % cmap.N)
+                    for index in range(len(groups))
+                ]
+            else:
+                colors = list(group_colors)
+
+                if len(colors) < len(groups):
+                    raise ValueError(
+                        f"group_colors contains {len(colors)} colours, "
+                        f"but {len(groups)} groups are present."
+                    )
+
+            group_color_map = dict(zip(groups, colors))
+
+        for ax, feature in zip(axes, features):
+            feature_summary = summary.loc[
+                summary["feature"] == feature
+            ]
+
+            for group in groups:
+                group_summary = (
+                    feature_summary.loc[
+                        feature_summary[group_by] == group
+                    ]
+                    .sort_values("_x")
+                )
+
+                if group_summary.empty:
+                    continue
+
+                x = group_summary["_x"].to_numpy(dtype=float)
+                mean = group_summary["mean"].to_numpy(dtype=float)
+                ci = group_summary["ci95"].to_numpy(dtype=float)
+                color = group_color_map[group]
+
+                ax.fill_between(
+                    x,
+                    mean - ci,
+                    mean + ci,
+                    color=color,
+                    alpha=ci_opacity,
+                    linewidth=0,
+                    zorder=1,
+                )
+
+                ax.plot(
+                    x,
+                    mean,
+                    color=color,
+                    linewidth=line_size,
+                    zorder=2,
+                )
+
+                ax.scatter(
+                    x,
+                    mean,
+                    color=color,
+                    s=dot_size,
+                    zorder=3,
+                )
+
+            ax.set_title(
+                str(feature),
+                fontweight="bold",
+                fontsize=10,
+            )
+
+        legend_handles = [
+            Line2D(
+                [0],
+                [0],
+                color=group_color_map[group],
+                marker="o",
+                linewidth=line_size,
+                markersize=np.sqrt(dot_size),
+                label=str(group),
+            )
+            for group in groups
+        ]
+
+        fig.legend(
+            handles=legend_handles,
+            title=group_by,
+            loc="center left",
+            bbox_to_anchor=(1.0, 0.5),
+            frameon=False,
+        )
+
+    # ------------------------------------------------------------------
+    # Style axes
+    # ------------------------------------------------------------------
+    for ax in axes:
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.grid(False)
+
+        if categorical_x:
+            positions = np.arange(len(category_labels))
+            ax.set_xticks(positions)
+            ax.set_xticklabels(category_labels)
+
+    fig.supxlabel(covariate)
+    fig.supylabel("Feature value (original scale)")
+
+    if group_by is None:
+        fig.tight_layout()
+    else:
+        fig.tight_layout(rect=(0, 0, 0.9, 1))
+
+    return fig, axes

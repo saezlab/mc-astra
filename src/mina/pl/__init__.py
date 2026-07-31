@@ -10,5 +10,6 @@ from .pl import (
     plot_view_genes,
     plot_view_samples,
     plot_interaction_tileplot,
-    plot_lr_circos
+    plot_lr_circos,
+    plot_feats_through_cov
 )
