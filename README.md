@@ -7,7 +7,7 @@
 [badge-docs]: https://img.shields.io/badge/docs-GitHub%20Pages-blue
 
 ## Multicellular factor analysis for tissue-state representations
-mc-ASTRA (`mc_astra`) provides a bridge between single-cell data analysis workflows from `scverse`, factor-based models from `MOFA-FLEX`, and prior knowledge to generate tissue-centric descriptions from single-cell data.
+mc-ASTRA (`mc_astra`, commonly imported as `mca`) provides a bridge between single-cell data analysis workflows from `scverse`, factor-based models from `MOFA-FLEX`, and prior knowledge to generate tissue-centric descriptions from single-cell data.
 
 This package facilitates the implementation of [Multicellular Factor Analysis](https://elifesciences.org/articles/93161) by providing functions to process and format single-cell data into a multi-view format, together with additional visualization and downstream tasks to analyse and interpret multicellular programs.
 
@@ -40,7 +40,7 @@ pip install git+https://github.com/saezlab/mc-astra.git@main
 Import the package as:
 
 ```python
-import mc_astra
+import mc_astra as mca
 ```
 
 ## Citation

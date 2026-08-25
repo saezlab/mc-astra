@@ -3,7 +3,7 @@
 Import mc-ASTRA as:
 
 ```
-import mc_astra
+import mc_astra as mca
 ```
 
 The reference is grouped into:
