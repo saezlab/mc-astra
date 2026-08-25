@@ -1,4 +1,4 @@
-"""Utility functions for constructing and merging MINA upstream views."""
+"""Utility functions for constructing and merging mc-ASTRA upstream views."""
 
 import anndata as ad
 import decoupler as dc
@@ -309,7 +309,7 @@ def _require_squidpy():
     except ImportError as e:
         raise ImportError(
             "get_nhood_enrichment_feats() requires Squidpy. "
-            "Install MINA with its runtime dependencies before using spatial summaries."
+            "Install mc-ASTRA with its runtime dependencies before using spatial summaries."
         ) from e
 
     return sq
@@ -510,6 +510,7 @@ def get_contaminant_genes(
 ):
     """
     Identify contaminant marker genes for each cell type.
+
     This function performs differential expression analysis to find genes that are significantly upregulated in one cell type compared to all others,
     and then identifies genes that are markers for other cell types as potential contaminants.
     Simple Wilcoxon tests are performed after cell-type specific filterings and normalization of data.
@@ -544,7 +545,7 @@ def get_contaminant_genes(
         pdata_test = pdata.copy()
 
         pdata_test.obs["test_column"] = pdata_test.obs[view_group].apply(
-            lambda x: "reference" if x == ref_ct else "rest"
+            lambda x, ref_ct=ref_ct: "reference" if x == ref_ct else "rest"
         )
 
         dc.pp.filter_by_expr(

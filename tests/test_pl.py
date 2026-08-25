@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
 
-from mina.pl import plot_mcell_funcomics
+from mc_astra.pl import plot_mcell_funcomics
 
 
 @pytest.fixture(autouse=True)

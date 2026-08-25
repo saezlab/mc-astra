@@ -1,5 +1,5 @@
 name: Feature request
-description: Propose a new feature for MINA
+description: Propose a new feature for mc-ASTRA
 labels: enhancement
 body:
   - type: textarea

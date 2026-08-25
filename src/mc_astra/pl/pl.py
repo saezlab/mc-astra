@@ -1,6 +1,7 @@
-"""Plotting functions for MINA upstream and downstream summaries."""
+"""Plotting functions for mc-ASTRA upstream and downstream summaries."""
 
 from collections.abc import Mapping, Sequence
+
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -11,7 +12,7 @@ from matplotlib.axes import Axes
 from matplotlib.colors import TwoSlopeNorm, to_hex
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle, Patch
+from matplotlib.patches import Patch, Rectangle
 from pycirclize import Circos
 from scipy.cluster.hierarchy import leaves_list, linkage
 from scipy.spatial.distance import pdist
@@ -1408,7 +1409,7 @@ def plot_lr_circos(
             },
         )
 
-        for gene, position in zip(genes, positions):
+        for gene, position in zip(genes, positions, strict=True):
             gene_positions[(sector.name, gene)] = float(position)
 
     for row in df.itertuples(index=False):
@@ -1797,7 +1798,7 @@ def plot_feats_through_cov(
     # Plot a single trajectory per feature
     # ------------------------------------------------------------------
     if group_by is None:
-        for ax, feature in zip(axes, features):
+        for ax, feature in zip(axes, features, strict=True):
             feature_summary = (
                 summary.loc[summary["feature"] == feature]
                 .sort_values("_x")
@@ -1878,9 +1879,9 @@ def plot_feats_through_cov(
                         f"but {len(groups)} groups are present."
                     )
 
-            group_color_map = dict(zip(groups, colors))
+            group_color_map = dict(zip(groups, colors, strict=False))
 
-        for ax, feature in zip(axes, features):
+        for ax, feature in zip(axes, features, strict=True):
             feature_summary = summary.loc[
                 summary["feature"] == feature
             ]

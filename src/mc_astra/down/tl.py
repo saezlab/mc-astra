@@ -1,4 +1,4 @@
-"""Downstream statistical and network-analysis tools for MINA outputs."""
+"""Downstream statistical and network-analysis tools for mc-ASTRA outputs."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import anndata as ad
 import decoupler as dc
 import numpy as np
 import pandas as pd
+import partipy as pt
 import scanpy as sc
 import scipy.sparse as sp
 import statsmodels.api as sm
@@ -16,9 +17,8 @@ import statsmodels.formula.api as smf
 from anndata import AnnData
 from scipy.stats import f_oneway, pearsonr
 from statsmodels.stats.multitest import multipletests
-import partipy as pt
 
-from mina.down.utils import split_by_view
+from mc_astra.down.utils import split_by_view
 
 # Funcomics to multiviews
 
@@ -944,7 +944,7 @@ def calculate_pat_archs(amodel,
     Parameters
     ----------
     amodel : anndata.AnnData
-        MINA model output AnnData object containing factor scores in `amodel.X`.
+        mc-ASTRA model output AnnData object containing factor scores in `amodel.X`.
 
     sel_factors : list[str] or "all"
         List of factor names to use for archetype calculation. If "all", all factors in `amodel.var_names` are used.
@@ -999,7 +999,7 @@ def get_arch_pats_values(amodel,
     Parameters
     ----------
     amodel : anndata.AnnData
-        MINA model output AnnData object containing factor scores in `amodel.X`.
+        mc-ASTRA model output AnnData object containing factor scores in `amodel.X`.
 
     n_archetypes : float
         Number of archetypes to use for the calculation. This should be the number of archetypes that you have selected based on the evaluation metrics.

@@ -1,23 +1,35 @@
-# MINA
+# mc-ASTRA
 
-## Multicellular INtegration Analysis
+## Multicellular factor analysis for tissue-state representations
 
-`mina` provides a bridge between single-cell analysis workflows from `scverse`,
-factor-based models from `MOFA-FLEX`, and prior knowledge to generate tissue-centric
-descriptions from single-cell data.
+mc-ASTRA (`mc_astra`) provides a bridge between single-cell analysis workflows from
+`scverse`, factor-based models from `MOFA-FLEX`, and prior knowledge to generate
+tissue-centric descriptions from single-cell data.
 
 The package supports preprocessing, multi-view construction, visualization,
 and downstream interpretation of multicellular programs.
 
 ## Installation
 
-MINA currently targets Python 3.12 and 3.13.
-MINA currently targets the dev branch of MOFA-FLEX: https://github.com/bioFAM/mofaflex.git@main.
+mc-ASTRA currently targets Python 3.12 and 3.13.
+mc-ASTRA currently targets the dev branch of MOFA-FLEX: https://github.com/bioFAM/mofaflex.git@main.
 
-Install the latest development version with:
+Install mc-ASTRA from PyPI with:
 
 ```bash
-pip install git+https://github.com/saezlab/MINA.git@main
+pip install mc-astra
+```
+
+Or install the latest development version:
+
+```bash
+pip install git+https://github.com/saezlab/mc-astra.git@main
+```
+
+Import the package as:
+
+```python
+import mc_astra
 ```
 
 ### Patient-level representations of tissue state
@@ -42,7 +54,7 @@ These programs:
 This formulation shifts the focus from *which genes change in which cells* to *which coordinated processes define the tissue state of a patient*.
 
 <p align="center">
-  <img src="figs/basic_workflow.png" alt="MINA overview" width="700">
+  <img src="figs/basic_workflow.png" alt="mc-ASTRA overview" width="700">
 </p>
 
 <p align="center"><em>Reconstruction of multicellular programs from single-cell data. Adapted from Ramirez Flores, et al. 2024. Physiology</em></p>
@@ -103,9 +115,9 @@ This positions patient heterogeneity as variation along **latent axes of multice
 
 ### What's new?
 
-MINA is a python package that expands the functionalities provided in our [R implementation](https://github.com/saezlab/MOFAcellulaR) and in [LIANA+](https://liana-py.readthedocs.io/en/latest/notebooks/mofacellular.html).
+mc-ASTRA is a python package that expands the functionalities provided in our [R implementation](https://github.com/saezlab/MOFAcellulaR) and in [LIANA+](https://liana-py.readthedocs.io/en/latest/notebooks/mofacellular.html).
 
-MINA simplifies the pre-processing of single cell data, connects to new models available in [MOFA-FLEX](https://github.com/bioFAM/mofaflex), and enables new downstream analyses and creation of custom tissue descriptor views (e.g. spatial).
+mc-ASTRA simplifies the pre-processing of single cell data, connects to new models available in [MOFA-FLEX](https://github.com/bioFAM/mofaflex), and enables new downstream analyses and creation of custom tissue descriptor views (e.g. spatial).
 
 Particularly it enables the guidance of factors using information of samples and features as presented in other factor models.
 

@@ -1,7 +1,9 @@
-"""Preprocessing utilities for MINA upstream data objects."""
+"""Preprocessing utilities for mc-ASTRA upstream data objects."""
+
+import re
+
 import numpy as np
 import pandas as pd
-import re
 import scanpy as sc
 
 # Upstream processing functions
@@ -159,9 +161,6 @@ def norm_zscore(anndata_dict, center=True):
     ----------
     anndata_dict : dict[str, anndata.AnnData]
         Dictionary of AnnData objects. Each object is modified in place.
-    max_value : float or None
-        If provided, clip transformed values to
-        ``[-max_value, max_value]``.
     center : bool
         Whether to subtract the feature mean before scaling. If False,
         features are divided by their standard deviation without centering.

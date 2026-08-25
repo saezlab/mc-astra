@@ -1,8 +1,8 @@
-site_name: MINA
-site_description: Multicellular INtegration Analysis
-site_url: https://saezlab.github.io/mina/
-repo_url: https://github.com/saezlab/MINA
-repo_name: saezlab/MINA
+site_name: mc-ASTRA
+site_description: Multicellular factor analysis for tissue-state representations
+site_url: https://saezlab.github.io/mc-astra/
+repo_url: https://github.com/saezlab/mc-astra
+repo_name: saezlab/mc-astra
 docs_dir: docs
 site_dir: site
 strict: true
@@ -69,6 +69,7 @@ nav:
       - Multicellular Factor Analysis guided by pathway annotations: notebooks/GetStarted_FunctionalViews_guided.ipynb
       - Multicellular Factor Analysis with spatial data: notebooks/GetStarted_spatial.ipynb
       - Integration with patpy and evaluating patient maps: notebooks/EvaluationOfModels.ipynb
+      - Patient archetypes in multicellular factor space: notebooks/PatientArchetypes.ipynb
   - API:
       - Overview: api/index.md
       - Upstream: api/up.md

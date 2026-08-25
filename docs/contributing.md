@@ -1,6 +1,6 @@
 # Contributing guide
 
-This document summarizes the main workflows for contributing to MINA.
+This document summarizes the main workflows for contributing to mc-ASTRA.
 
 ## Installing development dependencies
 

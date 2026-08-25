@@ -1,4 +1,4 @@
-"""Upstream preprocessing and feature-construction utilities for MINA."""
+"""Upstream preprocessing and feature-construction utilities for mc-ASTRA."""
 
 from .filt import (
     filter_anndata_by_ncells,
@@ -14,18 +14,18 @@ from .filt import (
 from .pp import (
     extract_metadata_from_obs,
     norm_log,
-    split_anndata_by_celltype,
     norm_zscore,
+    split_anndata_by_celltype,
 )
 from .utils import (
     append_view_to_var,
     convert_views_to_functions,
     get_cell_props,
+    get_contaminant_genes,
     get_nhood_enrichment_feats,
     make_membership_matrix,
     merge_adata_views,
     save_raw_counts,
-    get_contaminant_genes,
 )
 
 __all__ = [

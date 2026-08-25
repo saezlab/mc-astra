@@ -13,7 +13,7 @@ except ImportError as e:
     raise ImportError(
         "The patpy integration requires patpy. "
         "Install it with:\n\n"
-        "    pip install 'mina[patpy]'\n\n"
+        "    pip install 'mc-astra[patpy]'\n\n"
         "or, in a uv-managed environment:\n\n"
         "    uv sync --extra patpy"
     ) from e
@@ -24,7 +24,7 @@ class PrecomputedSampleRepresentation(SampleRepresentationMethod):
     Wrap a precomputed sample-by-feature matrix for patpy tools.
 
     This is useful when sample-level representations were computed outside
-    patpy, for example using MINA, MOFA, PCA, or another latent-variable model.
+    patpy, for example using mc-ASTRA, MOFA, PCA, or another latent-variable model.
 
     Parameters
     ----------

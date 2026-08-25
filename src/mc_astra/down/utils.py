@@ -1,4 +1,4 @@
-"""Utilities for converting MINA model outputs to AnnData objects."""
+"""Utilities for converting mc-ASTRA model outputs to AnnData objects."""
 
 from __future__ import annotations
 
@@ -252,7 +252,7 @@ def identify_outliers(amodel, threshold=10):
     Parameters
     ----------
     amodel : anndata.AnnData
-        MINA model output AnnData object containing factor scores in `amodel.X`.
+        mc-ASTRA model output AnnData object containing factor scores in `amodel.X`.
     threshold : float, optional
         Number of standard deviations from the mean to consider a sample an outlier. Default is 10.
 

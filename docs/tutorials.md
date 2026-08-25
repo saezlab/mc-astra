@@ -7,3 +7,4 @@
 - [Multicellular factor analysis with guided factors using prior knowledge of pathways with MuVI](notebooks/GetStarted_FunctionalViews_guided.ipynb)
 - [Multicellular factor analysis with spatial data](notebooks/GetStarted_spatial.ipynb)
 - [Integration with patpy and evaluating patient maps](notebooks/EvaluationOfModels.ipynb)
+- [Patient archetypes in multicellular factor space](notebooks/PatientArchetypes.ipynb)

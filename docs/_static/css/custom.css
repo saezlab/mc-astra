@@ -6,30 +6,30 @@
     --md-accent-fg-color: #0f8b8d;
     --md-accent-fg-color--transparent: rgba(15, 139, 141, 0.12);
 
-    --mina-bg-soft: #f2efe5;
-    --mina-bg-warm: #e9e3d2;
-    --mina-text: #4a4547;
-    --mina-navy: #1f2b58;
+    --mc_astra-bg-soft: #f2efe5;
+    --mc_astra-bg-warm: #e9e3d2;
+    --mc_astra-text: #4a4547;
+    --mc_astra-navy: #1f2b58;
 }
 
 body {
-    color: var(--mina-text);
+    color: var(--mc_astra-text);
 }
 
 .md-header,
 .md-tabs {
-    background: var(--mina-navy);
+    background: var(--mc_astra-navy);
 }
 
 .md-main {
-    background: var(--mina-bg-soft);
+    background: var(--mc_astra-bg-soft);
 }
 
 .md-typeset h1,
 .md-typeset h2,
 .md-typeset h3,
 .md-typeset h4 {
-    color: var(--mina-navy);
+    color: var(--mc_astra-navy);
 }
 
 .md-typeset a {
@@ -37,7 +37,7 @@ body {
 }
 
 .md-typeset a:hover {
-    color: var(--mina-navy);
+    color: var(--mc_astra-navy);
 }
 
 .md-typeset code {

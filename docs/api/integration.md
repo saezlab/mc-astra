@@ -1,3 +1,3 @@
 # Integration
 
-::: mina.integration.patpy.PrecomputedSampleRepresentation
+::: mc_astra.integration.patpy.PrecomputedSampleRepresentation

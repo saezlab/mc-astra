@@ -3,9 +3,9 @@ build-backend = "hatchling.build"
 requires = [ "hatchling" ]
 
 [project]
-name = "mina"
+name = "mc-astra"
 version = "0.1.0"
-description = "Multicellular INtegration Analysis"
+description = "Multicellular factor analysis for tissue-state representations"
 readme = "README.md"
 license = { file = "LICENSE" }
 maintainers = [
@@ -44,6 +44,10 @@ optional-dependencies.extra = [
   "patpy @ git+https://github.com/lueckenlab/patpy.git@main", # required for patient representation
 ]
 
+optional-dependencies.patpy = [
+  "patpy @ git+https://github.com/lueckenlab/patpy.git@main", # required for patient representation
+]
+
 optional-dependencies.dev = [
   "ruff",
   "pre-commit",
@@ -65,15 +69,15 @@ optional-dependencies.test = [
   'pytest-cov',
 ]
 # https://docs.pypi.org/project_metadata/#project-urls
-urls.Documentation = "https://saezlab.github.io/mina/"
-urls.Homepage = "https://github.com/saezlab/MINA"
-urls.Source = "https://github.com/saezlab/MINA"
+urls.Documentation = "https://saezlab.github.io/mc-astra/"
+urls.Homepage = "https://github.com/saezlab/mc-astra"
+urls.Source = "https://github.com/saezlab/mc-astra"
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = [ "src/mina" ]
+packages = [ "src/mc_astra" ]
 
 [tool.hatch.envs.default]
 installer = "uv"
@@ -156,7 +160,7 @@ addopts = [
 ]
 
 [tool.coverage.run]
-source = [ "mina" ]
+source = [ "mc_astra" ]
 patch = [ "subprocess" ]
 omit = [
   "**/test_*.py",

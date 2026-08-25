@@ -20,4 +20,4 @@ No unreleased changes are documented yet.
 ## Source
 
 For the canonical changelog file in the repository root, see
-[`CHANGELOG.md`](https://github.com/saezlab/MINA/blob/main/CHANGELOG.md).
+[`CHANGELOG.md`](https://github.com/saezlab/mc-astra/blob/main/CHANGELOG.md).

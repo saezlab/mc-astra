@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from mina.up import pp, utils
+from mc_astra.up import pp, utils
 
 
 def _make_adata(x, obs_names, var_names, obs_extra=None):

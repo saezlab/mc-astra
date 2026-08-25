@@ -1,9 +1,9 @@
 # API
 
-Import MINA as:
+Import mc-ASTRA as:
 
 ```
-import mina
+import mc_astra
 ```
 
 The reference is grouped into:

@@ -4,13 +4,13 @@
   "checkout": null,
   "context": {
     "cookiecutter": {
-      "project_name": "MINA",
-      "package_name": "mina",
-      "project_description": "v0 of Multicellular INtegration Analysis",
+      "project_name": "mc-ASTRA",
+      "package_name": "mc_astra",
+      "project_description": "Multicellular factor analysis for tissue-state representations",
       "author_full_name": "Klaus Kruger",
       "author_email": "klaus.kruger@stud.uni-heidelberg.de",
       "github_user": "KlausKruger",
-      "github_repo": "MINAtraining",
+      "github_repo": "mc-astra",
       "license": "Unlicense",
       "ide_integration": false,
       "_copy_without_render": [

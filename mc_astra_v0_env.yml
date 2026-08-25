@@ -1,4 +1,4 @@
-name: create_mina_test_v0
+name: create_mc_astra_test_v0
 channels:
   - conda-forge
 dependencies:

@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from scipy import sparse
 
-from mina.up import filt
+from mc_astra.up import filt
 
 
 def _make_adata(x, obs_names, var_names, obs_extra=None):

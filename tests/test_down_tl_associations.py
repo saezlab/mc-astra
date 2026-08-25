@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import f_oneway, pearsonr
 
-from mina.down.tl import get_associations
+from mc_astra.down.tl import get_associations
 
 
 def _make_adata(x, obs, var_names):
