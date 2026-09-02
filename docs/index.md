@@ -15,17 +15,13 @@ and downstream interpretation of multicellular programs.
 mc-ASTRA currently targets Python 3.12 and 3.13.
 mc-ASTRA currently targets the dev branch of MOFA-FLEX: https://github.com/bioFAM/mofaflex.git@main.
 
-Install mc-ASTRA from PyPI with:
-
-```bash
-pip install mc-astra
-```
-
-Or install the latest development version:
+Install mc-ASTRA latest development version:
 
 ```bash
 pip install git+https://github.com/saezlab/mc-astra.git@main
 ```
+
+PyPI installation coming soon!
 
 Import the package as:
 

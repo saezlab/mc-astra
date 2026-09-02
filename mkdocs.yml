@@ -68,6 +68,7 @@ nav:
       - Multicellular Factor Analysis with Functional Views: notebooks/GetStarted_FunctionalViews.ipynb
       - Multicellular Factor Analysis guided by pathway annotations: notebooks/GetStarted_FunctionalViews_guided.ipynb
       - Multicellular Factor Analysis with spatial data: notebooks/GetStarted_spatial.ipynb
+      - Multimodal spatial proteomics in CRC: notebooks/CRC_morpho.ipynb
       - Integration with patpy and evaluating patient maps: notebooks/EvaluationOfModels.ipynb
       - Patient archetypes in multicellular factor space: notebooks/PatientArchetypes.ipynb
   - API:
