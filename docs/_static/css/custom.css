@@ -1,35 +1,101 @@
 :root {
-    --md-primary-fg-color: #1d4ea8;
-    --md-primary-fg-color--light: #3f7bd8;
-    --md-primary-fg-color--dark: #173d84;
+    --md-primary-fg-color: #09265f;
+    --md-primary-fg-color--light: #173a7a;
+    --md-primary-fg-color--dark: #061a42;
 
-    --md-accent-fg-color: #0f8b8d;
-    --md-accent-fg-color--transparent: rgba(15, 139, 141, 0.12);
+    --md-accent-fg-color: #168f9e;
+    --md-accent-fg-color--transparent: rgba(22, 143, 158, 0.14);
 
-    --mc_astra-bg-soft: #f2efe5;
-    --mc_astra-bg-warm: #e9e3d2;
-    --mc_astra-text: #4a4547;
-    --mc_astra-navy: #1f2b58;
+    --mc-astra-bg-soft: #f7f0e7;
+    --mc-astra-bg-warm: #fffaf3;
+    --mc-astra-border: #e8d9c2;
+    --mc-astra-text: #342f2b;
+    --mc-astra-muted: #625a52;
+    --mc-astra-navy: #09265f;
+    --mc-astra-teal: #168f9e;
+    --mc-astra-orange: #d88324;
 }
 
 body {
-    color: var(--mc_astra-text);
+    color: var(--mc-astra-text);
 }
 
 .md-header,
 .md-tabs {
-    background: var(--mc_astra-navy);
+    background: var(--mc-astra-navy);
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg,
+.md-nav__button.md-logo img,
+.md-nav__button.md-logo svg {
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 3px;
+}
+
+.md-sidebar--primary,
+.md-sidebar--primary .md-sidebar__scrollwrap,
+.md-sidebar--primary .md-sidebar__inner,
+.md-sidebar--primary .md-nav,
+.md-sidebar--primary .md-nav__title {
+    background: var(--mc-astra-bg-soft);
+}
+
+.md-sidebar--primary .md-nav__title {
+    box-shadow: none;
+    color: var(--mc-astra-navy);
+}
+
+.md-sidebar--primary .md-nav__title .md-logo {
+    background: transparent;
+}
+
+.mc-astra-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    margin: 0.2rem 0 1.1rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgba(216, 131, 36, 0.28);
+}
+
+.md-typeset .mc-astra-title-row h1 {
+    margin: 0 0 0.25rem;
+}
+
+.md-typeset .mc-astra-title-row h2 {
+    margin: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.md-typeset .mc-astra-title-row img {
+    width: clamp(5.5rem, 18vw, 8.5rem);
+    flex: 0 0 auto;
+    border: 1px solid var(--mc-astra-border);
+    border-radius: 8px;
 }
 
 .md-main {
-    background: var(--mc_astra-bg-soft);
+    background: var(--mc-astra-bg-soft);
 }
 
 .md-typeset h1,
 .md-typeset h2,
 .md-typeset h3,
 .md-typeset h4 {
-    color: var(--mc_astra-navy);
+    color: var(--mc-astra-navy);
+}
+
+.md-typeset h1 {
+    margin-bottom: 0.75rem;
+}
+
+.md-typeset h2 {
+    border-bottom: 1px solid rgba(216, 131, 36, 0.28);
+    padding-bottom: 0.2rem;
 }
 
 .md-typeset a {
@@ -37,22 +103,23 @@ body {
 }
 
 .md-typeset a:hover {
-    color: var(--mc_astra-navy);
+    color: var(--mc-astra-orange);
 }
 
 .md-typeset code {
-    background-color: rgba(29, 78, 168, 0.08);
+    background-color: rgba(9, 38, 95, 0.07);
 }
 
 .md-typeset blockquote {
-    border-left: 0.2rem solid var(--md-accent-fg-color);
-    background: rgba(242, 239, 229, 0.7);
+    border-left: 0.2rem solid var(--mc-astra-orange);
+    background: rgba(255, 250, 243, 0.9);
+    color: var(--mc-astra-muted);
 }
 
 .md-typeset .admonition,
 .md-typeset details {
-    border-color: rgba(15, 139, 141, 0.22);
-    background-color: rgba(242, 239, 229, 0.55);
+    border-color: rgba(22, 143, 158, 0.28);
+    background-color: rgba(255, 250, 243, 0.92);
 }
 
 .md-search__form {
@@ -64,7 +131,88 @@ body {
     color: var(--md-accent-fg-color);
 }
 
+.tutorial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 0.8rem;
+    margin: 0.8rem 0 1.4rem;
+}
+
+.tutorial-card {
+    min-height: 7.4rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--mc-astra-border);
+    border-left: 0.24rem solid var(--mc-astra-orange);
+    border-radius: 8px;
+    background: var(--mc-astra-bg-warm);
+}
+
+.tutorial-card h3 {
+    margin: 0 0 0.35rem;
+    font-size: 0.94rem;
+    line-height: 1.35;
+}
+
+.tutorial-card p {
+    margin: 0;
+    color: var(--mc-astra-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.md-typeset .doc.doc-object.doc-function,
+.md-typeset .doc.doc-object.doc-class {
+    margin-top: 1.2rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(9, 38, 95, 0.12);
+}
+
+.md-typeset h2.doc-heading,
+.md-typeset h3.doc-heading {
+    overflow-x: auto;
+    margin: 0.5rem 0 0.35rem;
+    padding: 0.3rem 0.44rem;
+    border: 1px solid rgba(22, 143, 158, 0.2);
+    border-left: 0.18rem solid var(--mc-astra-teal);
+    border-radius: 6px;
+    background: var(--mc-astra-bg-warm);
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.md-typeset h2.doc-heading code.highlight,
+.md-typeset h3.doc-heading code.highlight {
+    display: block;
+    padding: 0;
+    background: transparent;
+    color: var(--mc-astra-navy);
+    font-size: 0.8rem;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.md-typeset .doc-contents {
+    font-size: inherit;
+}
+
+.md-typeset .doc-section-title {
+    color: var(--mc-astra-navy);
+    font-size: 0.84rem;
+}
+
 /* Reduce the font size in data frames - See https://github.com/scverse/cookiecutter-scverse/issues/193 */
 div.cell_output table.dataframe {
     font-size: 0.8em;
+}
+
+@media screen and (max-width: 44.984rem) {
+    .mc-astra-title-row {
+        align-items: flex-start;
+        gap: 0.8rem;
+    }
+
+    .mc-astra-title-row img {
+        width: 4.8rem;
+    }
 }

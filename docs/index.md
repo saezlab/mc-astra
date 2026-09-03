@@ -1,14 +1,16 @@
-# mc-ASTRA
+<div class="mc-astra-title-row">
+  <div>
+    <h1>mc-ASTRA</h1>
+    <h2>multicellular Analysis of Sample Tissue Representations and Associations</h2>
+  </div>
+  <img src="_static/img/mc-astra-logo.jpg" alt="mc-ASTRA logo">
+</div>
 
-## Multicellular factor analysis for tissue-state representations
+mc-ASTRA (`mc_astra`, commonly imported as `mca`) is a Python package for building interpretable maps of tissue and sample variability from single-cell and spatial omics data.
 
-mc-ASTRA (`mc_astra`, commonly imported as `mca`) provides a bridge between
-single-cell analysis workflows from `scverse`, factor-based models from
-`MOFA-FLEX`, and prior knowledge to generate tissue-centric descriptions from
-single-cell data.
+It integrates molecular, compositional, and spatial tissue descriptors together with sample-level information, such as clinical variables or technical covariates, to identify the main sources of variation across a collection of tissues. Using flexible factor models and downstream biological interpretation, mc-ASTRA connects these differences to coordinated multicellular programs and changes in tissue organization.
 
-The package supports preprocessing, multi-view construction, visualization,
-and downstream interpretation of multicellular programs.
+The package provides modular workflows for preprocessing, constructing multi-view tissue representations, fitting and exploring tissue-state maps, and interpreting the multicellular processes underlying them. It integrates with the [`scverse`](https://scverse.org/) ecosystem, uses [`MOFA-FLEX`](https://github.com/bioFAM/mofaflex) for flexible factor modeling, and supports the incorporation of biological and technical prior knowledge.
 
 ## Installation
 

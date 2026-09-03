@@ -9,6 +9,8 @@ strict: true
 
 theme:
   name: material
+  logo: _static/img/mc-astra-logo.jpg
+  favicon: _static/img/mc-astra-logo.jpg
   palette:
     - scheme: default
       primary: custom
@@ -61,16 +63,20 @@ extra_css:
 nav:
   - Home: index.md
   - Tutorials:
-      - Available applications: tutorials.md
-      - Multicellular Factor Analysis with MOFA: notebooks/GetStarted_MOFA.ipynb
-      - Multicellular Programs Guided by Patient Covariates: notebooks/GetStarted_SOFA.ipynb
-      - Multicellular Programs Across Experimental Groups: notebooks/GetStarted_groups.ipynb
-      - Multicellular Factor Analysis with Functional Views: notebooks/GetStarted_FunctionalViews.ipynb
-      - Multicellular Factor Analysis guided by pathway annotations: notebooks/GetStarted_FunctionalViews_guided.ipynb
-      - Multicellular Factor Analysis with spatial data: notebooks/GetStarted_spatial.ipynb
-      - Multimodal spatial proteomics in CRC: notebooks/CRC_morpho.ipynb
-      - Integration with patpy and evaluating patient maps: notebooks/EvaluationOfModels.ipynb
-      - Patient archetypes in multicellular factor space: notebooks/PatientArchetypes.ipynb
+      - Overview: tutorials.md
+      - Using Different Models:
+          - Multicellular Factor Analysis with MOFA: notebooks/GetStarted_MOFA.ipynb
+          - Multicellular Programs Guided by Patient Covariates: notebooks/GetStarted_SOFA.ipynb
+          - Multicellular Programs Across Experimental Groups: notebooks/GetStarted_groups.ipynb
+          - Multicellular Factor Analysis Guided by Pathway Annotations: notebooks/GetStarted_FunctionalViews_guided.ipynb
+          - Spatiotemporal Multicellular Factor Analysis with MEFISTO: notebooks/Spatiotemporal_notebook.ipynb
+      - Using Different Tissue Descriptors:
+          - Multicellular Factor Analysis with Functional Views: notebooks/GetStarted_FunctionalViews.ipynb
+          - Multicellular Factor Analysis with Spatial Data: notebooks/GetStarted_spatial.ipynb
+          - Multimodal Spatial Proteomics in CRC: notebooks/CRC_morpho.ipynb
+      - Evaluation and Downstream Analysis:
+          - Integration with patpy and Evaluating Patient Maps: notebooks/EvaluationOfModels.ipynb
+          - Patient Archetypes in Multicellular Factor Space: notebooks/PatientArchetypes.ipynb
   - API:
       - Overview: api/index.md
       - Upstream: api/up.md
