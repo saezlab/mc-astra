@@ -4,6 +4,7 @@ import anndata as ad
 import decoupler as dc
 import pandas as pd
 import scanpy as sc
+import numpy as np
 from anndata import AnnData
 from skbio.stats.composition import clr, multi_replace
 
@@ -163,7 +164,7 @@ def merge_adata_views(
         if len(adatas) == 1:
             merged_adata = adatas[0].copy()
         else:
-            merged_adata = ad.concat(adatas, axis=0, join="outer", merge="unique")
+            merged_adata = ad.concat(adatas, axis=0, join="outer", merge="unique", fill_value=np.nan,)
 
         if len(adatas) > 1:
             var_counts = {}

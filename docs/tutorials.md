@@ -2,6 +2,10 @@
 
 The vignettes are organized around the main choices in a mc-ASTRA analysis: which model to fit, which tissue descriptors to represent, and how to evaluate or interpret the resulting patient map.
 
+> Tutorial datasets are available on Zenodo: https://zenodo.org/records/22280030.
+>
+> For the spatiotemporal dataset, we recommend using the code in the companion repository to generate the data: https://github.com/saezlab/mc-ASTRA_pub.
+
 ## Using Different Models
 
 <div class="tutorial-grid" markdown>
