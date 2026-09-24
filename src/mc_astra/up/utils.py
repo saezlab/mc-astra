@@ -6,6 +6,7 @@ import pandas as pd
 import scanpy as sc
 import numpy as np
 from anndata import AnnData
+from collections import Counter
 from skbio.stats.composition import clr, multi_replace
 
 
@@ -224,6 +225,253 @@ def merge_adata_views(
         merged[view] = merged_adata
 
     return merged
+
+from collections import Counter
+from anndata import AnnData
+
+
+def build_multigroup(
+    studies: list[dict[str, AnnData]],
+    study_names: list[str],
+    view_mode: str = "union",
+    min_view_studies: int = 2,
+    var_mode: str = "outer",
+    min_var_studies: int = 2,
+) -> dict[str, dict[str, AnnData]]:
+    """
+    Filter study-level AnnData dictionaries by view and variable coverage
+    without merging the AnnData objects.
+
+    Parameters
+    ----------
+    studies : list[dict[str, AnnData]]
+        List of study dictionaries, each mapping view names to AnnData objects.
+
+    study_names : list[str]
+        Unique identifiers for each study. Must align with ``studies``.
+
+    view_mode : {'union', 'intersection', 'min_n'}
+        Strategy for selecting views across studies.
+
+        - ``'union'``:
+          Keep all views present in at least one study.
+        - ``'intersection'``:
+          Keep only views present in every study.
+        - ``'min_n'``:
+          Keep views present in at least ``min_view_studies`` studies.
+
+    min_view_studies : int
+        Minimum number of studies required when ``view_mode='min_n'``.
+
+    var_mode : {'inner', 'outer', 'min_n'}
+        Strategy for selecting variables within each view.
+
+        - ``'inner'``:
+          Keep variables present in every study containing that view.
+        - ``'outer'``:
+          Keep variables present in at least one study containing that view.
+        - ``'min_n'``:
+          Keep variables present in at least ``min_var_studies`` studies
+          containing that view.
+
+        Variables that pass the global filter but are absent from an
+        individual study are left absent from that AnnData object. They are
+        not introduced as NaN columns.
+
+    min_var_studies : int
+        Minimum number of studies required when ``var_mode='min_n'``.
+
+    Returns
+    -------
+    filtered : dict[str, dict[str, AnnData]]
+        Nested dictionary with structure::
+
+            {
+                study_name: {
+                    view_name: AnnData,
+                    ...
+                },
+                ...
+            }
+
+        All returned AnnData objects are copies.
+
+        Each AnnData:
+        - contains only retained variables that are actually present in that
+          study;
+        - has observation columns restricted to those shared across all
+          studies contributing to that view;
+        - contains ``.obs["study"]`` indicating the study of origin.
+    """
+
+    if len(studies) != len(study_names):
+        raise ValueError(
+            "study_names must have the same length as studies"
+        )
+
+    if len(set(study_names)) != len(study_names):
+        raise ValueError("study_names must be unique")
+
+    if view_mode not in {"union", "intersection", "min_n"}:
+        raise ValueError(
+            "view_mode must be one of {'union', 'intersection', 'min_n'}"
+        )
+
+    if var_mode not in {"inner", "outer", "min_n"}:
+        raise ValueError(
+            "var_mode must be one of {'inner', 'outer', 'min_n'}"
+        )
+
+    if view_mode == "min_n" and min_view_studies < 2:
+        raise ValueError("min_view_studies must be >= 2")
+
+    if var_mode == "min_n" and min_var_studies < 2:
+        raise ValueError("min_var_studies must be >= 2")
+
+    n_studies = len(studies)
+
+    # ------------------------------------------------------------
+    # Select views
+    # ------------------------------------------------------------
+
+    view_counts = Counter(
+        view
+        for study in studies
+        for view in study
+    )
+
+    if view_mode == "intersection":
+        keep_views = {
+            view
+            for view, count in view_counts.items()
+            if count == n_studies
+        }
+
+    elif view_mode == "union":
+        keep_views = set(view_counts)
+
+    else:  # min_n
+        keep_views = {
+            view
+            for view, count in view_counts.items()
+            if count >= min_view_studies
+        }
+
+    # ------------------------------------------------------------
+    # Select variables independently for each view
+    # ------------------------------------------------------------
+
+    keep_vars_by_view = {}
+
+    for view in keep_views:
+
+        adatas = [
+            study[view]
+            for study in studies
+            if view in study
+        ]
+
+        for a in adatas:
+            if not a.var_names.is_unique:
+                raise ValueError(
+                    f"Duplicate var_names found in view {view!r}"
+                )
+
+        var_counts = Counter(
+            var
+            for a in adatas
+            for var in a.var_names
+        )
+
+        if var_mode == "inner":
+            keep_vars = {
+                var
+                for var, count in var_counts.items()
+                if count == len(adatas)
+            }
+
+        elif var_mode == "outer":
+            keep_vars = set(var_counts)
+
+        else:  # min_n
+            keep_vars = {
+                var
+                for var, count in var_counts.items()
+                if count >= min_var_studies
+            }
+
+        keep_vars_by_view[view] = keep_vars
+
+    # ------------------------------------------------------------
+    # Determine shared obs columns for each view
+    # ------------------------------------------------------------
+
+    obs_cols_by_view = {}
+
+    for view in keep_views:
+
+        adatas = [
+            study[view]
+            for study in studies
+            if view in study
+        ]
+
+        shared_obs = set(adatas[0].obs.columns)
+
+        for a in adatas[1:]:
+            shared_obs &= set(a.obs.columns)
+
+        # "study" is added explicitly below.
+        obs_cols_by_view[view] = {
+            col
+            for col in shared_obs
+            if col != "study"
+        }
+
+    # ------------------------------------------------------------
+    # Subset each study without merging
+    # ------------------------------------------------------------
+
+    filtered = {}
+
+    for study_name, study in zip(
+        study_names,
+        studies,
+        strict=True,
+    ):
+
+        filtered[study_name] = {}
+
+        for view in keep_views:
+
+            if view not in study:
+                continue
+
+            a = study[view]
+
+            # Keep only globally eligible variables that genuinely exist
+            # in this study. Do not create missing variables as NaNs.
+            local_vars = [
+                var
+                for var in a.var_names
+                if var in keep_vars_by_view[view]
+            ]
+
+            a = a[:, local_vars].copy()
+
+            # Retain only harmonised observation metadata.
+            local_obs_cols = [
+                col
+                for col in a.obs.columns
+                if col in obs_cols_by_view[view]
+            ]
+
+            a.obs = a.obs.loc[:, local_obs_cols].copy()
+            a.obs["study"] = study_name
+
+            filtered[study_name][view] = a
+
+    return filtered
 
 
 def convert_views_to_functions(anndata_dict, net, tmin=5):
