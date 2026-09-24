@@ -26,6 +26,7 @@ from .utils import (
     make_membership_matrix,
     merge_adata_views,
     save_raw_counts,
+    build_multigroup,
 )
 
 __all__ = [
@@ -50,4 +51,5 @@ __all__ = [
     "get_cell_props",
     "get_contaminant_genes",
     "norm_zscore",
+    "build_multigroup",
 ]
